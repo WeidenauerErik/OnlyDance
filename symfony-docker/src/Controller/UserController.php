@@ -6,6 +6,8 @@ use App\Entity\User;
 use App\Form\UserType;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Error;
+use mysql_xdevapi\Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,7 +24,7 @@ class UserController extends AbstractController
 
 
     #[IsGranted('ROLE_USER')]
-    #[Route("/get",name: 'app_user_data', methods: ['GET'])]
+    #[Route("/get", name: 'app_user_data', methods: ['GET'])]
     public function jsonData(SerializerInterface $serializer,): JsonResponse
     {
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
@@ -37,11 +39,11 @@ class UserController extends AbstractController
     }
 
 
-    #[Route("/register",name: 'app_user_register', methods: ['Post'])]
-    public function register( ValidatorInterface $validator,Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher): JsonResponse
+    #[Route("/register", name: 'app_user_register', methods: ['Post'])]
+    public function register(Request $request, EntityManagerInterface $entityManager, UserPasswordHasherInterface $passwordHasher): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
-        if (!isset($data['email'],$data['name'], $data['password'])) {
+        if (!isset($data['email'], $data['name'], $data['password'])) {
             return new JsonResponse(['error' => 'Missing required fields'], 400);
         }
 
@@ -49,19 +51,22 @@ class UserController extends AbstractController
 
         $user->setEmail($data["email"]);
         $user->setName($data["name"]);
-        $user->setPassword($passwordHasher->hashPassword($user,$data["email"]));
+        $user->setPassword($passwordHasher->hashPassword($user, $data["email"]));
 
 
-        if($validator->validate($user)){
+
+        try {
+            $entityManager->persist($user);
+            $entityManager->flush();
+
+        } catch (Error $error) {
+
             return new JsonResponse(["error" => ["message" => "validation failed, please enter non existing Email", "type" => "email"]],400);
-        }
 
-        $entityManager->persist($user);
-        $entityManager->flush();
+        }
 
         return new JsonResponse(["status" => "user successfully created"]);
     }
-
 
 
     #[Route(name: 'app_user_index', methods: ['GET'])]
@@ -115,11 +120,10 @@ class UserController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            if ($user->getPassword()!= "" && $plainPassword = $user->getPassword()) {
+            if ($user->getPassword() != "" && $plainPassword = $user->getPassword()) {
                 $hashedPassword = $passwordHasher->hashPassword($user, $plainPassword);
                 $user->setPassword($hashedPassword);
-            }
-            else {
+            } else {
                 // Restore the original password if no new password was provided
                 $user->setPassword($password);
             }
@@ -138,7 +142,7 @@ class UserController extends AbstractController
     #[Route('/{id}', name: 'app_user_delete', methods: ['POST'])]
     public function delete(Request $request, User $user, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$user->getId(), $request->getPayload()->getString('_token'))) {
+        if ($this->isCsrfTokenValid('delete' . $user->getId(), $request->getPayload()->getString('_token'))) {
             $entityManager->remove($user);
             $entityManager->flush();
         }
