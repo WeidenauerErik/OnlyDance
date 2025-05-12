@@ -4,10 +4,13 @@ import { RouterLink, useRouter } from "vue-router";
 
 import searchIcon from '@/assets/icons/searchIcon.svg';
 import menuIcon from '@/assets/icons/menuIcon.svg';
+import {useAuthStore} from "@/stores/auth.ts";
 
 const router = useRouter();
 const showMenu = ref(false);
 const searchQuery = ref('');
+
+const auth = useAuthStore();
 
 const closeMenu = (event: MouseEvent) => {
   const menu = document.getElementById("menuDropdown");
@@ -61,9 +64,12 @@ onUnmounted(() => {
         </div>
 
         <!-- Authentication Buttons for Desktop -->
-        <div class="auth-buttons desktop-only">
+        <div v-if="!auth.isAuthenticated"  class="auth-buttons desktop-only">
           <RouterLink to="/login" class="login-btn">Anmelden</RouterLink>
           <RouterLink to="/signup" class="signup-btn">Registrieren</RouterLink>
+        </div>
+        <div v-if="auth.isAuthenticated"  class="auth-buttons desktop-only">
+          <button @click="auth.logout()" class="signup-btn">Ausloggen</button>
         </div>
 
         <!-- Mobile Menu Toggle -->
@@ -74,13 +80,20 @@ onUnmounted(() => {
     </div>
 
     <!-- Mobile Menu Dropdown -->
-    <div v-show="showMenu" class="mobile-menu" id="menuDropdown">
+    <div v-if="!auth.isAuthenticated" v-show="showMenu" class="mobile-menu" id="menuDropdown">
       <RouterLink to="/mainpage" class="mobile-link" @click="showMenu = false">Hauptseite</RouterLink>
       <RouterLink to="/checklist" class="mobile-link" @click="showMenu = false">Checkliste</RouterLink>
       <RouterLink to="/events" class="mobile-link" @click="showMenu = false">Event Kalender</RouterLink>
       <div class="mobile-divider"></div>
       <RouterLink to="/login" class="mobile-link" @click="showMenu = false">Anmelden</RouterLink>
       <RouterLink to="/signup" class="mobile-link" @click="showMenu = false">Registrieren</RouterLink>
+    </div>
+    <div v-if="auth.isAuthenticated" v-show="showMenu" class="mobile-menu" id="menuDropdown">
+      <RouterLink to="/mainpage" class="mobile-link" @click="showMenu = false">Hauptseite</RouterLink>
+      <RouterLink to="/checklist" class="mobile-link" @click="showMenu = false">Checkliste</RouterLink>
+      <RouterLink to="/events" class="mobile-link" @click="showMenu = false">Event Kalender</RouterLink>
+      <div class="mobile-divider"></div>
+      <button @click="auth.logout()" class="mobile-link">Ausloggen</button>
     </div>
   </header>
 </template>

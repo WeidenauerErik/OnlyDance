@@ -2,17 +2,44 @@
   <main class="auth-page">
     <section class="auth-section">
       <h1 class="auth-title">Willkommen zurück!</h1>
-      <form class="auth-form">
-        <input type="email" placeholder="E-Mail" required />
-        <input type="password" placeholder="Passwort" required />
-        <button type="submit" class="auth-button">Einloggen</button>
-      </form>
+      <div class="auth-form">
+        <input v-model="email" type="email" placeholder="E-Mail" required/>
+        <input v-model="password" type="password" placeholder="Passwort" required/>
+        <button type="submit" class="auth-button" @click="handleLogin">Einloggen</button>
+      </div>
       <RouterLink to="/signup" class="switch-link">Noch keinen Account? Jetzt registrieren</RouterLink>
     </section>
   </main>
 </template>
 
 <script setup>
+
+import {ref} from "vue";
+import axios from "axios";
+import {useAuthStore} from "@/stores/auth.js";
+import router from "@/router/index.js";
+
+const auth = useAuthStore();
+
+
+const email = ref("");
+const password = ref("");
+
+async function handleLogin() {
+
+  try {
+    const response = await axios.post("https://localhost/api/login", {
+      email: email.value,
+      password: password.value
+    })
+    auth.login(response.data.token)
+    router.push("/hello");
+  }catch (error){
+    alert("Email oder Passwort sind nicht korrekt");
+  }
+
+
+}
 </script>
 
 <style scoped lang="scss">
