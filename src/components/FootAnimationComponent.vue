@@ -6,12 +6,14 @@ import {
   type FootAnimationProps,
   type FootAnimationEmits
 } from "@/tsTypes/interfacesDanceView.ts";
+import router from "@/router";
 
 import skipLeftIcon from '@/assets/icons/skipLeftIcon.svg';
 import skipRightIcon from '@/assets/icons/skipRightIcon.svg';
 import arrowLeftIcon from '@/assets/icons/arrowLeftIcon.svg';
 import arrowRightIcon from '@/assets/icons/arrowRightIcon.svg';
 import settingsIcon from '@/assets/icons/settingsIcon.svg';
+import {useRouter} from "vue-router";
 
 const props = defineProps<FootAnimationProps>();
 const emit = defineEmits<FootAnimationEmits>();
@@ -110,7 +112,11 @@ onUnmounted(() => {
   <div id="morphDiv" ref="morphDivRef" v-if="!props.loaderIsVisible">
 
     <div id="infoCounterDisplayCounter">
+      <div>
+        <button class="main-button" @click="router.go(-1)" v-if="!props.isInEditMode">← Zurück zum Menü</button>
+      </div>
       <span id="infoCounterDisplay"> {{ props.danceStepCounter + 1 }} / {{ props.danceStepLength }}</span>
+      <div></div>
     </div>
 
     <div id="manLeftFoot" class="foot" ref="manLeftFoot">
@@ -205,6 +211,14 @@ onUnmounted(() => {
 </template>
 
 <style scoped lang="scss">
+$color-purple-primary: #8A2BE2;
+$color-purple-light: #9D4EDD;
+$color-purple-dark: #6A0DAD;
+$color-white: #FFFFFF;
+$color-gray-light: #F5F5F5;
+$color-gray: #E0E0E0;
+$color-text-dark: #333333;
+
 #morphDiv {
   width: 100%;
   height: 80vh;
@@ -212,9 +226,27 @@ onUnmounted(() => {
 
   #infoCounterDisplayCounter {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
     width: 100%;
     margin-top: 1vh;
+
+    .main-button {
+      margin-left: 20px;
+      margin-bottom: 2rem;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 0.5rem;
+      background-color: $colorVioletLight;
+      color: $color-white;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background-color: $colorPurpleLight;
+        transform: translateY(-1px);
+      }
+    }
   }
 
   #manLeftFoot,
@@ -319,6 +351,10 @@ onUnmounted(() => {
       width: 6vh;
       height: 6vh;
       background-color: $colorPurpleLight;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
 
       &:hover {
         background-color: $colorVioletLight;

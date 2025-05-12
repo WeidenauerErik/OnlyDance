@@ -4,4 +4,5 @@ export interface DanceTypes {
     tact: string;
     difficulty: number;
     defaultBPM: number;
+    badge: string;
 }

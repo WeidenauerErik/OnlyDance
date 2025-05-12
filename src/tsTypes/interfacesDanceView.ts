@@ -48,4 +48,5 @@ export interface FootAnimationEmits {
     'backToEndBtn': void;
     'addStep': void;
     'removeStep': void;
+    'backToMenu': void;
 }

@@ -157,17 +157,19 @@ const backToEndBtn = () => {
 const addStep = () => {
   const newStep = makeCurrentStep();
   steps.value.push(newStep);
-  currentStep.value = steps[steps.value.length];
   danceStepLength.value = steps.value.length;
   danceStepCounter.value = danceStepLength.value - 1;
   refreshInputFields();
 };
 
-const removeStep = () => {
+const removeStep = async () => {
   if (steps.value.length !== 1) {
-    steps.value.splice(danceStepCounter.value-1,1);
+    steps.value.splice(danceStepCounter.value,1);
     danceStepLength.value = steps.value.length;
-    danceStepCounter.value = steps.value.length-1;
+    danceStepCounter.value = steps.value.length-2;
+    await nextTick();
+    currentStep.value = steps.value[danceStepCounter.value];
+    refreshInputFields();
   }
 }
 

@@ -10,7 +10,8 @@ import pauseIcon from "@/assets/icons/pauseIcon.svg";
 const props = defineProps({
   id : String
 });
-//const url = import.meta.env.VITE_ServerIP + '/stepsequence/get/1';
+
+//url for fetching for stepsequences
 const url =  import.meta.env.VITE_ServerIP +`/stepsequence/get/${props.id}`
 
 const steps = ref<Step>();
@@ -29,7 +30,6 @@ onMounted(() => {
   fetch(url)
       .then((res) => res.json())
       .then((data: Step) => {
-        console.log(data);
         steps.value = data.steps;
         danceStepLength.value = data.steps.length;
         danceStepCounter.value = 0;
@@ -70,7 +70,10 @@ const nextBtn = () => {
 const AutoplayBtn = async () => {
   if (danceStepCounter.value === steps.value.length - 1) {
     danceStepCounter.value = 0;
+    currentStep.value = steps.value[danceStepCounter.value];
+    await nextTick();
   }
+
   if (autoplayActive.value) {
     autoplayVariable.value = playIcon;
     autoplayActive.value = false;
@@ -81,13 +84,11 @@ const AutoplayBtn = async () => {
   autoplayActive.value = true;
 
   while (danceStepCounter.value < steps.value.length - 1 && autoplayActive.value) {
-    if (autoplayActive.value) {
-      danceStepCounter.value++;
-      currentStep.value = steps.value[danceStepCounter.value];
-      await new Promise((resolve) => setTimeout(resolve, steps.value[danceStepCounter.value].howQuick * 500));
-    } else {
-      return;
-    }
+    danceStepCounter.value++;
+    currentStep.value = steps.value[danceStepCounter.value];
+    await nextTick();
+    const delay = steps.value[danceStepCounter.value].howquick * 500;
+    await new Promise((resolve) => setTimeout(resolve, delay));
   }
 
   autoplayVariable.value = playIcon;

@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import searchIcon from '@/assets/icons/searchIcon.svg';
-import { type DanceTypes } from '@/tsTypes/interfacesMainPageView.ts';
-import { nextTick, onMounted, ref } from "vue";
+import {type DanceTypes} from '@/tsTypes/interfacesMainPageView.ts';
+import {nextTick, onMounted, ref} from "vue";
 import router from "@/router";
+import goldIcon from '@/assets/icons/Gold.png';
+import silberIcon from '@/assets/icons/Silber.png';
+import bronzeIcon from '@/assets/icons/Bronze.png';
 
 const url = import.meta.env.VITE_ServerIP + "/dance/dances";
 const dances = ref<DanceTypes[]>([]);
 const stepsequences = ref<[]>([]);
+let filterStepsequences = ref<[]>([]);
+const isFiltered = ref(false);
 const isStepsequence = ref(false);
 const searchQuery = ref('');
 
@@ -19,7 +24,7 @@ onMounted(() => {
       });
 });
 
-function getStepsequencesFromDance(danceId: number) {
+const getStepsequencesFromDance = (danceId: number) => {
   fetch(import.meta.env.VITE_ServerIP + `/stepsequence/dance/${danceId}`)
       .then(response => response.json())
       .then((data) => {
@@ -29,39 +34,93 @@ function getStepsequencesFromDance(danceId: number) {
       });
 }
 
-function openDanceView(stepsequenceId: string) {
+const getAllStepsequences = () => {
+  fetch(import.meta.env.VITE_ServerIP + '/stepsequence/get')
+      .then(response => response.json())
+      .then((data) => {
+        stepsequences.value = data;
+        nextTick();
+        isStepsequence.value = true;
+      })
+}
+
+const openDanceView = (stepsequenceId: string) => {
   router.push(`/danceView/${stepsequenceId}`);
+}
+
+const filter = (badge: number) => {
+  filterStepsequences.value = [];
+  isFiltered.value = true;
+
+  for (let i = 0; i < stepsequences.value.length; i++) {
+    if (stepsequences.value[i].badge.id === badge) {
+      filterStepsequences.value.push(stepsequences.value[i]);
+    }
+  }
+}
+
+const resetFilters = () => {
+  isFiltered.value = false;
 }
 </script>
 
 <template>
   <div class="main-page">
-    <!-- Search Section -->
-    <div class="search-section">
-      <div class="search-container">
-        <input
-            type="text"
-            v-model="searchQuery"
-            class="search-input"
-            placeholder="Suchen Sie nach Tänzen..."
-        >
-        <button class="search-button">
-          <img :src="searchIcon" alt="Suchen">
-        </button>
+
+    <!-- Header Part -->
+    <div class="header-section">
+
+      <!-- Back Button -->
+      <button
+          v-if="isStepsequence"
+          @click="isStepsequence = false"
+          class="main-button"
+      >
+        ← Zurück zu den Tänzen
+      </button>
+      <div v-else></div>
+
+      <!-- Search Section -->
+      <div class="search-section">
+        <div class="search-container">
+          <input
+              type="text"
+              v-model="searchQuery"
+              class="search-input"
+              placeholder="Suchen Sie nach Tänzen..."
+          >
+          <button class="search-button">
+            <img :src="searchIcon" alt="Suchen">
+          </button>
+        </div>
+      </div>
+
+      <!--Get all Stepsequences --->
+      <div v-if="!isStepsequence">
+        <button @click="getAllStepsequences" v-if="!isStepsequence" class="main-button">Alle Tanzschritte</button>
+      </div>
+
+      <!--Filters for the Stepsequences -->
+      <div v-else id="filter-container">
+        <div id="filter-buttons">
+          <button class="filter-button" @click="filter(3)">
+            <img :src="goldIcon" alt="Filterfunktion für Gold">
+          </button>
+          <button class="filter-button" @click="filter(2)">
+            <img :src="silberIcon" alt="Filterfunktion für Silber">
+          </button>
+          <button class="filter-button" @click="filter(1)">
+            <img :src="bronzeIcon" alt="Filterfunktion für Bronze">
+          </button>
+        </div>
+        <button @click="resetFilters" id="reset-filter">Filter zurücksetzen</button>
       </div>
     </div>
 
-    <!-- Back Button -->
-    <button
-        v-if="isStepsequence"
-        @click="isStepsequence = false"
-        class="back-button"
-    >
-      ← Zurück zu den Tänzen
-    </button>
-
     <!-- Dance Grid -->
     <div class="dance-grid">
+
+      <!--Dance Grid if Dances are shown-->
       <template v-if="!isStepsequence">
         <div
             v-for="dance in dances"
@@ -81,7 +140,8 @@ function openDanceView(stepsequenceId: string) {
         </div>
       </template>
 
-      <template v-else>
+      <!--Dance Grid if there are stepsequences and unfiltered -->
+      <template v-else-if="isStepsequence && !isFiltered">
         <div
             v-for="stepsequence in stepsequences"
             :key="stepsequence.id"
@@ -97,6 +157,39 @@ function openDanceView(stepsequenceId: string) {
             >★</span>
           </div>
           <span class="bpm-indicator">{{ stepsequence.dance.defaultBPM }} BPM</span>
+
+          <span v-if="stepsequence.badge.name === 'Bronze'"><img :src="bronzeIcon" class="badges-icons"></span>
+          <span v-else-if="stepsequence.badge.name === 'Silber'"><img :src="silberIcon" class="badges-icons"></span>
+          <span v-else-if="stepsequence.badge.name === 'Gold'"><img :src="goldIcon" class="badges-icons"></span>
+          <span v-else>{{ stepsequence.badge.name }}</span>
+
+        </div>
+      </template>
+
+      <!--Dance Grid if there are stepsequences and filtered -->
+      <template v-else>
+        <div v-if="filterStepsequences.length === 0">Es gibt keine Tanzschritte mit diesem Abzeichen.</div>
+        <div
+            v-for="stepsequence in filterStepsequences"
+            :key="stepsequence.id"
+            class="dance-card"
+            @click="openDanceView(stepsequence.id)"
+        >
+          <h3 class="dance-title">{{ stepsequence.name }}</h3>
+          <div class="difficulty-indicator">
+            <span
+                v-for="index in stepsequence.difficulty"
+                :key="index"
+                class="difficulty-star"
+            >★</span>
+          </div>
+          <span class="bpm-indicator">{{ stepsequence.dance.defaultBPM }} BPM</span>
+
+          <span v-if="stepsequence.badge.name === 'Bronze'"><img :src="bronzeIcon" class="badges-icons"></span>
+          <span v-else-if="stepsequence.badge.name === 'Silber'"><img :src="silberIcon" class="badges-icons"></span>
+          <span v-else-if="stepsequence.badge.name === 'Gold'"><img :src="goldIcon" class="badges-icons"></span>
+          <span v-else>{{ stepsequence.badge.name }}</span>
+
         </div>
       </template>
     </div>
@@ -112,11 +205,19 @@ $color-white: #FFFFFF;
 $color-gray-light: #F5F5F5;
 $color-gray: #E0E0E0;
 $color-text-dark: #333333;
+#reset-filter {
+  margin-left: 20px;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
 
 .main-page {
   padding: 2rem;
   margin: 0 auto;
   background: linear-gradient(to bottom right, #f3e8ff, #fce7f3, #ffffff);
+  height: 100vh;
 }
 
 // Search Section
@@ -128,6 +229,12 @@ $color-text-dark: #333333;
   position: relative;
   max-width: 600px;
   margin: 0 auto;
+}
+
+.header-section {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 }
 
 .search-input {
@@ -171,8 +278,8 @@ $color-text-dark: #333333;
   }
 }
 
-// Back Button
-.back-button {
+// Button
+.main-button {
   margin-bottom: 2rem;
   padding: 0.75rem 1.5rem;
   border: none;
@@ -186,6 +293,10 @@ $color-text-dark: #333333;
   &:hover {
     background-color: $colorPurpleLight;
     transform: translateY(-1px);
+  }
+
+  img {
+    width: 1rem;
   }
 }
 
@@ -240,8 +351,49 @@ $color-text-dark: #333333;
   opacity: 0.9;
 }
 
+.badges-icons {
+  width: 5rem;
+}
+
+#filter-buttons {
+  background-color: $colorVioletLight;
+  box-shadow: none;
+  height: 100%;
+  padding: 0.5rem;
+  border-radius: 20px;
+  width: 15rem;
+  filter: none;
+
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+
+  .filter-button {
+    background: none;
+
+    img {
+      width: 3rem;
+      &:hover {
+        transform: translateY(-1px);
+      }
+    }
+  }
+}
+
+#filter-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: end;
+}
+
 // Responsive Design
 @media (max-width: 768px) {
+  .header-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
   .main-page {
     padding: 1rem;
   }
