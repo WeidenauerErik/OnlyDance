@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Form\UserType;
 use App\Repository\UserRepository;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Error;
 use mysql_xdevapi\Exception;
@@ -47,19 +48,20 @@ class UserController extends AbstractController
             return new JsonResponse(['error' => 'Missing required fields'], 400);
         }
 
-        $user = new User();
 
-        $user->setEmail($data["email"]);
-        $user->setName($data["name"]);
-        $user->setPassword($passwordHasher->hashPassword($user, $data["email"]));
 
 
 
         try {
+            $user = new User();
+
+            $user->setEmail($data["email"]);
+            $user->setName($data["name"]);
+            $user->setPassword($passwordHasher->hashPassword($user, $data["password"]));
             $entityManager->persist($user);
             $entityManager->flush();
 
-        } catch (Error $error) {
+        } catch (UniqueConstraintViolationException $e) {
 
             return new JsonResponse(["error" => ["message" => "validation failed, please enter non existing Email", "type" => "email"]],400);
 
