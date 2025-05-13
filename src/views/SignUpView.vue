@@ -26,7 +26,7 @@
 <script setup>
 import {computed, reactive, ref} from 'vue'
 import {useVuelidate} from '@vuelidate/core'
-import {required, email, numeric, sameAs, alpha, minLength} from '@vuelidate/validators'
+import {required, email, numeric, sameAs, alpha, minLength, maxLength} from '@vuelidate/validators'
 import axios from "axios";
 import router from "@/router/index.js";
 import Swal from "sweetalert2";
@@ -40,7 +40,7 @@ const state = reactive({
 })
 
 const rules = {
-  name: {required,alpha},
+  name: {required,alpha,maxLength: maxLength(10)},
   email: {required, email},
   password: {minLength: minLength(3), required},
   passwordRepeat: {
