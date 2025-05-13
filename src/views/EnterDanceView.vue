@@ -242,7 +242,12 @@ const saveDance = async () => {
     input: 'text',
     icon: 'info',
     showCancelButton: true,
-    confirmButtonText: 'Weiter'
+    confirmButtonText: 'Weiter',
+    inputValidator: (value) => {
+      if (!value) {
+        return 'Bitte gib einen Namen ein!';
+      }
+    }
   });
 
   if (!namePrompt.value) return;
@@ -279,17 +284,34 @@ const saveDance = async () => {
     steps: steps.value,
   };
 
-  try {
-    const response = await axios.post(ServerUrl + '/stepsequence/add', output, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    console.log(response);
-    Swal.fire('Erfolgreich gespeichert!', '', 'success');
-  } catch (error) {
-    console.error(error);
-    Swal.fire('Fehler beim Speichern', error.message || 'Unbekannter Fehler', 'error');
+  const checkValues = await Swal.fire({
+    title: 'Stimmen die Daten überein!',
+    html: 'Zugehöriger Tanz: ' + dances[dancePrompt.value] + '<br>' +
+        'Name: ' + namePrompt.value + '<br>' +
+        'Abzeichen: ' + badges[badgePrompt.value] + '<br>' +
+        'Schwierigkeit: ' + difficulty[difficultyPrompt.value],
+    icon: 'info',
+    showCancelButton: true,
+    confirmButtonText: 'Ja',
+    cancelButtonText: 'Nein'
+  });
+
+
+  if (checkValues.isDismissed || checkValues.isDenied || checkValues.isCanceled) {
+    await saveDance();
+  } else {
+
+    try {
+      const response = await axios.post(ServerUrl + '/stepsequence/add', output, {
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      Swal.fire('Erfolgreich gespeichert!', '', 'success');
+    } catch (error) {
+      console.error(error);
+      Swal.fire('Fehler beim Speichern', error.message || 'Unbekannter Fehler', 'error');
+    }
   }
 };
 </script>
