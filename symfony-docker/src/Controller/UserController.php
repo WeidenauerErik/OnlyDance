@@ -49,9 +49,6 @@ class UserController extends AbstractController
         }
 
 
-
-
-
         try {
             $user = new User();
 
@@ -67,7 +64,7 @@ class UserController extends AbstractController
 
         }
 
-        return new JsonResponse(["status" => "user successfully created"]);
+        return new JsonResponse(["status" => "User erfolgreich erstellt"]);
     }
 
 
