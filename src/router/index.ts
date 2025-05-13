@@ -9,7 +9,6 @@ import DanceView from '../views/DanceView.vue';
 import ImprintView from "../views/ImprintView.vue";
 import LoginView from '@/views/LoginView.vue';
 import EnterDanceView from "../views/EnterDanceView.vue"
-import HelloView from "@/views/HelloView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -59,12 +58,7 @@ const router = createRouter({
       path: '/enterDance',
       name: 'enterDance',
       component: EnterDanceView
-    },
-    {
-      path: '/hello',
-      name: 'hello',
-      component: HelloView
-    },
+    }
   ],
 })
 

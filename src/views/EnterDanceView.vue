@@ -238,7 +238,7 @@ const saveDance = async () => {
 
   const namePrompt = await Swal.fire({
     title: 'Gib mir bitte noch ein paar Informationen!',
-    text: 'Wie soll der Tanz heißen?',
+    text: 'Wie soll die Figur heißen?',
     input: 'text',
     icon: 'info',
     showCancelButton: true,
@@ -280,7 +280,7 @@ const saveDance = async () => {
   };
 
   try {
-    const response = await axios.post(ServerUrl + '/stepsequence/add/file', output, {
+    const response = await axios.post(ServerUrl + '/stepsequence/add', output, {
       headers: {
         'Content-Type': 'application/json'
       }

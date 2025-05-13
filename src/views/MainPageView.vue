@@ -353,6 +353,7 @@ $color-text-dark: #333333;
 
 .badges-icons {
   width: 5rem;
+  margin-top: 5px;
 }
 
 #filter-buttons {
@@ -372,6 +373,7 @@ $color-text-dark: #333333;
     background: none;
 
     img {
+      margin: 10px;
       width: 3rem;
       &:hover {
         transform: translateY(-1px);

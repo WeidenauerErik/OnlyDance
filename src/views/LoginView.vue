@@ -13,7 +13,7 @@
 </template>
 
 <script setup>
-
+import Swal from 'sweetalert2'
 import {ref} from "vue";
 import axios from "axios";
 import {useAuthStore} from "@/stores/auth.js";
@@ -27,15 +27,33 @@ const password = ref("");
 
 async function handleLogin() {
 
+  const Toast = Swal.mixin({
+    toast: true,
+    position: "top-end",
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    didOpen: (toast) => {
+      toast.onmouseenter = Swal.stopTimer;
+      toast.onmouseleave = Swal.resumeTimer;
+    }
+  });
   try {
     const response = await axios.post("https://localhost/api/login", {
       email: email.value,
       password: password.value
     })
-    auth.login(response.data.token)
-    router.push("/hello");
+    auth.login(response.data.token);
+    Toast.fire({
+      icon: "success",
+      title: "Hervorragend du bist eingelogged!"
+    });
+    router.push("/mainpage");
   }catch (error){
-    alert("Email oder Passwort sind nicht korrekt");
+    Toast.fire({
+      icon: "error",
+      title: "E-Mail oder Passwort ist falsch!"
+    });
   }
 
 

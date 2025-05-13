@@ -29,6 +29,7 @@ import {useVuelidate} from '@vuelidate/core'
 import {required, email, numeric, sameAs, alpha, minLength} from '@vuelidate/validators'
 import axios from "axios";
 import router from "@/router/index.js";
+import Swal from "sweetalert2";
 
 
 const state = reactive({
@@ -55,18 +56,34 @@ async function submitForm() {
   if (v$.value.$error) {
     alert("eingabe nicht Korrekt")
   } else {
-
+    const Toast = Swal.mixin({
+      toast: true,
+      position: "top-end",
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.onmouseenter = Swal.stopTimer;
+        toast.onmouseleave = Swal.resumeTimer;
+      }
+    });
     try {
       const response = await axios.post("https://localhost/user/register", {
         name: state.name,
         email: state.email,
         password: state.password,
       });
-      alert(response.data.status);
+      Toast.fire({
+        icon: "success",
+        title: "Hervorragend du hast dich registriert!"
+      });
       setTimeout(() => router.push("/login"),100)
     }catch (AxiosError){
       if( AxiosError.response.data.error.type === "email"){
-        alert("Es gibt bereits einen Account mit dieser Email Adresse")
+        Toast.fire({
+          icon: "error",
+          title: "Dieser Account existiert bereits"
+        });
       }
     }
 
