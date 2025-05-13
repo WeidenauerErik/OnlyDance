@@ -114,9 +114,12 @@ onUnmounted(() => {
     <div id="infoCounterDisplayCounter">
       <div>
         <button class="main-button" @click="router.go(-1)" v-if="!props.isInEditMode">← Zurück zum Menü</button>
+        <button class="main-button" @click="router.go(-1)" v-else>← Zurück zum Menü</button>
       </div>
       <span id="infoCounterDisplay"> {{ props.danceStepCounter + 1 }} / {{ props.danceStepLength }}</span>
-      <div></div>
+      <div>
+        <button @click="$emit('saveDance')" class="main-button" v-if="props.isInEditMode" style="margin-right:5px;">Speichern</button>
+      </div>
     </div>
 
     <div id="manLeftFoot" class="foot" ref="manLeftFoot">
@@ -202,9 +205,9 @@ onUnmounted(() => {
     <div class="controlsContainerElement" id="controlsSettingsContainer">
 
       <img :src="settingsIcon" alt="Einstellungen" id="settingsIcon" v-if="!props.isInEditMode">
-      <div v-else>
-        <button @click="$emit('addStep')" >add new step</button>
-        <button @click="$emit('removeStep')">remove step</button>
+      <div v-else id="stepControlerContainer">
+        <button @click="$emit('addStep')" class="stepControler" title="Füge einen Tanzschritt hinzu">+</button>
+        <button @click="$emit('removeStep')" class="stepControler" title="Lösche den jetztigen Tanzschritt">-</button>
       </div>
     </div>
   </div>
@@ -370,6 +373,30 @@ $color-text-dark: #333333;
 
   #nextStepsequence {
     text-decoration: none;
+  }
+}
+
+#stepControlerContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  justify-content: space-between;
+
+  .stepControler {
+    cursor: pointer;
+    border: none;
+    border-radius: 50%;
+    width: 6vh;
+    height: 6vh;
+    background-color: $colorPurpleLight;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &:hover {
+      background-color: $colorVioletLight;
+    }
   }
 }
 </style>

@@ -1,10 +1,15 @@
 <script setup lang="ts">
 import {nextTick, onMounted, type Ref, ref, watch} from "vue";
 import FootAnimationComponent from "@/components/FootAnimationComponent.vue";
-import type {FootStep, } from "@/tsTypes/interfacesDanceView.ts";
+import type {FootStep,} from "@/tsTypes/interfacesDanceView.ts";
 
 import playIcon from "@/assets/icons/playIcon.svg";
 import pauseIcon from "@/assets/icons/pauseIcon.svg";
+
+import Swal from 'sweetalert2'
+import axios from "axios";
+
+const ServerUrl = import.meta.env.VITE_ServerIP;
 
 let steps = ref<FootStep[]>([]);
 const autoplayActive = ref<boolean>(false);
@@ -164,9 +169,9 @@ const addStep = () => {
 
 const removeStep = async () => {
   if (steps.value.length !== 1) {
-    steps.value.splice(danceStepCounter.value,1);
+    steps.value.splice(danceStepCounter.value, 1);
     danceStepLength.value = steps.value.length;
-    danceStepCounter.value = steps.value.length-2;
+    danceStepCounter.value = steps.value.length - 2;
     await nextTick();
     currentStep.value = steps.value[danceStepCounter.value];
     refreshInputFields();
@@ -197,10 +202,96 @@ const refreshInputFields = () => {
   w2_heel.value = steps.value[danceStepCounter.value].w2_heel;
 }
 
+const loadData = async (url) => {
+  const response = await fetch(ServerUrl + url);
+  const data = await response.json();
+  const dances = data.reduce((acc, item) => {
+    acc[item.id] = item.name;
+    return acc;
+  }, {});
+  return dances;
+};
 
-const submitJSON = () => {
-  console.log(JSON.stringify(steps.value));
-}
+
+const saveDance = async () => {
+  const difficulty = {
+    0: "1",
+    1: "2",
+    2: "3",
+    3: "4",
+    4: "5"
+  };
+
+  const dances = await loadData("/dance/dances");
+  const badges = await loadData("/badge/badges");
+
+  const dancePrompt = await Swal.fire({
+    title: 'Gib mir bitte noch ein paar Informationen!',
+    text: 'Zu welchem Tanz willst du ihn hinzufügen?',
+    input: 'select',
+    inputOptions: dances,
+    icon: 'info',
+    showCancelButton: true,
+  });
+
+  if (!dancePrompt.value) return;
+
+  const namePrompt = await Swal.fire({
+    title: 'Gib mir bitte noch ein paar Informationen!',
+    text: 'Wie soll der Tanz heißen?',
+    input: 'text',
+    icon: 'info',
+    showCancelButton: true,
+    confirmButtonText: 'Weiter'
+  });
+
+  if (!namePrompt.value) return;
+
+  const badgePrompt = await Swal.fire({
+    title: 'Gib mir bitte noch ein paar Informationen!',
+    text: 'Welches Abzeichen soll der Tanzschritt bekommen?',
+    input: 'select',
+    inputOptions: badges,
+    icon: 'info',
+    showCancelButton: true,
+    confirmButtonText: 'Weiter'
+  });
+
+  if (!badgePrompt.value) return;
+
+  const difficultyPrompt = await Swal.fire({
+    title: 'Gib mir bitte noch ein paar Informationen!',
+    text: 'Welches Schwierigkeitsgrad soll der Tanzschritt bekommen?',
+    input: 'select',
+    inputOptions: difficulty,
+    icon: 'info',
+    showCancelButton: true,
+    confirmButtonText: 'Weiter'
+  });
+
+  if (!difficultyPrompt.value) return;
+
+  const output = {
+    name: namePrompt.value,
+    badge_id: badgePrompt.value,
+    difficulty: difficultyPrompt.value,
+    dance_id: dancePrompt.value,
+    steps: steps.value,
+  };
+
+  try {
+    const response = await axios.post(ServerUrl + '/stepsequence/add/file', output, {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+    console.log(response);
+    Swal.fire('Erfolgreich gespeichert!', '', 'success');
+  } catch (error) {
+    console.error(error);
+    Swal.fire('Fehler beim Speichern', error.message || 'Unbekannter Fehler', 'error');
+  }
+};
 </script>
 
 <template>
@@ -218,6 +309,7 @@ const submitJSON = () => {
                           @backToEndBtn="backToEndBtn"
                           @addStep="addStep"
                           @removeStep="removeStep"
+                          @saveDance="saveDance"
   />
 
   <div class="overlay">
@@ -265,8 +357,6 @@ const submitJSON = () => {
       </div>
     </div>
   </div>
-
-  <button @click="submitJSON">Submit für Andi</button>
 </template>
 
 <style scoped>
