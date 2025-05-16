@@ -1,85 +1,137 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, watch } from "vue";
 import { RouterLink, useRouter } from "vue-router";
-
 import searchIcon from '@/assets/icons/searchIcon.svg';
 import menuIcon from '@/assets/icons/menuIcon.svg';
-import {useAuthStore} from "@/stores/auth.ts";
+import { useAuthStore } from "@/stores/auth.ts";
 
 const router = useRouter();
 const showMenu = ref(false);
 const searchQuery = ref('');
-
+const searchResults = ref<{ id: number, name: string, type: 'Tanz' | 'Tanzschritt' }[]>([]);
+const allDances = ref([]);
+const allStepsequences = ref([]);
 const auth = useAuthStore();
 
 const closeMenu = (event: MouseEvent) => {
   const menu = document.getElementById("menuDropdown");
   const menuIcon = document.getElementById("menuIconNavBar");
-  if (menu && menuIcon && !menu.contains(event.target as Node) && !menuIcon.contains(event.target as Node))
+  if (menu && menuIcon && !menu.contains(event.target as Node) && !menuIcon.contains(event.target as Node)) {
     showMenu.value = false;
+  }
 };
 
-const handleSearch = () => {
-  console.log('Searching for:', searchQuery.value);
+const fetchSearchData = async () => {
+  try {
+    const [dancesRes, stepsRes] = await Promise.all([
+      fetch(import.meta.env.VITE_ServerIP + "/dance/dances"),
+      fetch(import.meta.env.VITE_ServerIP + "/stepsequence/get"),
+    ]);
+
+    const [dancesData, stepsData] = await Promise.all([
+      dancesRes.json(),
+      stepsRes.json(),
+    ]);
+
+    allDances.value = dancesData;
+    allStepsequences.value = stepsData;
+  } catch (error) {
+    console.error("Fehler beim Laden der Suchdaten:", error);
+  }
+};
+
+const filterSearchResults = () => {
+  const query = searchQuery.value.toLowerCase().trim();
+  if (!query) {
+    searchResults.value = [];
+    return;
+  }
+
+  const danceMatches = allDances.value
+      .filter((d: any) => d.name.toLowerCase().includes(query))
+      .map((d: any) => ({ id: d.id, name: d.name, type: "Tanz" }));
+
+  const stepMatches = allStepsequences.value
+      .filter((s: any) => s.name.toLowerCase().includes(query))
+      .map((s: any) => ({ id: s.id, name: s.name, type: "Tanzschritt" }));
+
+  searchResults.value = [...danceMatches, ...stepMatches].slice(0, 5);
+};
+
+const handleSearchClick = (result: { id: number, type: string }) => {
+  if (result.type === "Tanz") {
+    router.push("/mainpage");
+    setTimeout(() => location.reload(), 100); // oder über globalen Zustand triggern
+  } else {
+    router.push(`/danceView/${result.id}`);
+  }
+
+  searchQuery.value = '';
+  searchResults.value = [];
 };
 
 onMounted(() => {
   document.addEventListener("click", closeMenu);
+  fetchSearchData();
 });
 
 onUnmounted(() => {
   document.removeEventListener("click", closeMenu);
 });
+
+watch(searchQuery, filterSearchResults);
 </script>
 
 <template>
   <header class="navbar">
     <div class="navbar-container">
-      <!--Brand Name -->
       <RouterLink to="/" class="navbar-brand">
         <h1 class="navbar-title">OnlyDance</h1>
       </RouterLink>
 
-      <!-- Navigation Items -->
       <nav class="navbar-nav">
-        <!-- Navigation Links for Desktop -->
         <div class="navbar-links desktop-only">
           <RouterLink to="/mainpage" class="nav-link">Hauptseite</RouterLink>
           <RouterLink to="/checklist" class="nav-link">Checkliste</RouterLink>
           <RouterLink to="/events" class="nav-link">Event Kalender</RouterLink>
         </div>
 
-        <!-- Search Bar -->
+        <!-- Search -->
         <div class="search-container" v-if="!(router.currentRoute.value.path === '/mainpage')">
           <input
               type="text"
               class="search-input"
               placeholder="Suchen..."
               v-model="searchQuery"
-              @keyup.enter="handleSearch"
           >
-          <button class="search-button" @click="handleSearch">
+          <button class="search-button">
             <img :src="searchIcon" alt="Suchen">
           </button>
+
+          <!-- Ergebnisse -->
+          <ul v-if="searchResults.length > 0" class="search-results">
+            <li v-for="result in searchResults" :key="result.id" @click="handleSearchClick(result)">
+              <span class="result-name">{{ result.name }}</span>
+              <span class="result-type">({{ result.type }})</span>
+            </li>
+          </ul>
         </div>
 
-        <!-- Authentication Buttons for Desktop -->
-        <div v-if="!auth.isAuthenticated"  class="auth-buttons desktop-only">
+        <div v-if="!auth.isAuthenticated" class="auth-buttons desktop-only">
           <RouterLink to="/login" class="login-btn">Anmelden</RouterLink>
           <RouterLink to="/signup" class="signup-btn">Registrieren</RouterLink>
         </div>
-        <div v-if="auth.isAuthenticated"  class="auth-buttons desktop-only">
+        <div v-if="auth.isAuthenticated" class="auth-buttons desktop-only">
           <button @click="auth.logout()" class="signup-btn">Ausloggen</button>
         </div>
 
-        <!-- Mobile Menu Toggle -->
         <button class="menu-toggle" @click="showMenu = !showMenu" aria-label="Toggle menu">
           <img :src="menuIcon" id="menuIconNavBar" alt="Menu">
         </button>
       </nav>
     </div>
 
-    <!-- Mobile Menu Dropdown -->
+    <!-- Mobile Menu -->
     <div v-if="!auth.isAuthenticated" v-show="showMenu" class="mobile-menu" id="menuDropdown">
       <RouterLink to="/mainpage" class="mobile-link" @click="showMenu = false">Hauptseite</RouterLink>
       <RouterLink to="/checklist" class="mobile-link" @click="showMenu = false">Checkliste</RouterLink>
@@ -99,20 +151,16 @@ onUnmounted(() => {
 </template>
 
 <style scoped lang="scss">
-// Variables
-$color-purple-primary: #8A2BE2; // Primary purple
-$color-purple-light: #9D4EDD;   // Lighter purple
-$color-purple-dark: #6A0DAD;    // Darker purple
+// Farben
+$color-purple-primary: #8A2BE2;
+$color-purple-light: #9D4EDD;
+$color-purple-dark: #6A0DAD;
 $color-white: #FFFFFF;
 $color-gray-light: #F5F5F5;
 $color-gray: #E0E0E0;
 $color-text-dark: #333333;
 
-// Breakpoints
-$breakpoint-mobile: 768px;
-$breakpoint-tablet: 1424px;
-
-// Base styles
+// Navbar-Grundstruktur
 .navbar {
   position: sticky;
   top: 0;
@@ -131,23 +179,13 @@ $breakpoint-tablet: 1424px;
   align-items: center;
 }
 
-// Brand Section
+// Brand
 .navbar-brand {
   display: flex;
   align-items: center;
   text-decoration: none;
   color: $color-white;
-  transition: opacity 0.2s ease;
   cursor: pointer;
-
-  &:hover {
-    opacity: 0.9;
-  }
-}
-
-.navbar-logo {
-  height: 2.5rem;
-  margin-right: 0.75rem;
 }
 
 .navbar-title {
@@ -157,7 +195,7 @@ $breakpoint-tablet: 1424px;
   margin: 0;
 }
 
-// Navigation Section
+// Links
 .navbar-nav {
   display: flex;
   align-items: center;
@@ -175,31 +213,15 @@ $breakpoint-tablet: 1424px;
   font-weight: 500;
   padding: 0.5rem 0.75rem;
   border-radius: 0.25rem;
-  transition: all 0.2s ease;
   position: relative;
 
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 0;
-    height: 2px;
-    background: linear-gradient(to bottom right, #f3e8ff, #fce7f3, #ffffff);
-    transition: width 0.2s ease;
-  }
-
-  &:hover, &.router-link-active {
+  &:hover,
+  &.router-link-active {
     background-color: rgba(255, 255, 255, 0.1);
-
-    &::after {
-      width: 80%;
-    }
   }
 }
 
-// Search Bar
+// Suche
 .search-container {
   position: relative;
   width: 240px;
@@ -214,17 +236,6 @@ $breakpoint-tablet: 1424px;
   background: linear-gradient(to bottom right, #f3e8ff, #fce7f3, #ffffff);
   color: $color-text-dark;
   font-size: 0.9rem;
-  transition: all 0.2s ease;
-
-  &:focus {
-    outline: none;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
-    background: linear-gradient(to bottom right, #f3e8ff, #fce7f3, #ffffff);
-  }
-
-  &::placeholder {
-    color: #999;
-  }
 }
 
 .search-button {
@@ -235,10 +246,6 @@ $breakpoint-tablet: 1424px;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0.25rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 
   img {
     width: 1.25rem;
@@ -246,7 +253,53 @@ $breakpoint-tablet: 1424px;
   }
 }
 
-// Auth Buttons
+// Suchergebnisse
+.search-results {
+  position: absolute;
+  top: 100%;
+  margin-top: 0.5rem;
+  width: 100%;
+  background-color: $color-white;
+  border: 1px solid $color-gray;
+  border-radius: 0.75rem;
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 1002;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+
+  li {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    color: $color-text-dark;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid $color-gray-light;
+    transition: background-color 0.2s ease;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background-color: $color-gray-light;
+    }
+
+    .result-name {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+    }
+
+    .result-type {
+      font-size: 0.85rem;
+      font-style: italic;
+      color: $color-purple-dark;
+      opacity: 0.8;
+    }
+  }
+}
+
+// Auth
 .auth-buttons {
   display: flex;
   gap: 1rem;
@@ -257,42 +310,25 @@ $breakpoint-tablet: 1424px;
   color: $color-white;
   text-decoration: none;
   font-weight: 500;
-  padding: 0.5rem 1rem;
-  border-radius: 0.25rem;
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-  }
 }
 
 .signup-btn {
-  color: $colorVioletLight;
-  background: linear-gradient(to bottom right, #f3e8ff, #fce7f3, #ffffff);
-  text-decoration: none;
+  color: $color-purple-dark;
+  background: $color-white;
   font-weight: 600;
   padding: 0.5rem 1rem;
   border-radius: 0.25rem;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background-color: $color-gray-light;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  }
 }
 
-// Mobile Menu
+// Mobile
 .menu-toggle {
   display: none;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0.5rem;
 
   img {
     width: 1.5rem;
-    height: 1.5rem;
   }
 }
 
@@ -306,8 +342,6 @@ $breakpoint-tablet: 1424px;
   padding: 1rem 0;
   width: 200px;
   z-index: 1001;
-  transform-origin: top right;
-  animation: slideDown 0.2s ease-out;
 }
 
 .mobile-link {
@@ -316,12 +350,6 @@ $breakpoint-tablet: 1424px;
   color: $color-text-dark;
   text-decoration: none;
   font-weight: 500;
-  transition: background-color 0.2s ease;
-
-  &:hover {
-    background-color: $color-gray-light;
-    color: $color-purple-primary;
-  }
 }
 
 .mobile-divider {
@@ -330,8 +358,8 @@ $breakpoint-tablet: 1424px;
   margin: 0.5rem 0;
 }
 
-// Responsive Design
-@media (max-width: $breakpoint-tablet) {
+// Responsiveness
+@media (max-width: 1424px) {
   .desktop-only {
     display: none;
   }
@@ -356,18 +384,6 @@ $breakpoint-tablet: 1424px;
 
   .search-container {
     width: 150px;
-  }
-}
-
-// Animations
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 </style>

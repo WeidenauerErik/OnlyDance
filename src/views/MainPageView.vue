@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import searchIcon from '@/assets/icons/searchIcon.svg';
 import {type DanceTypes} from '@/tsTypes/interfacesMainPageView.ts';
-import {nextTick, onMounted, ref} from "vue";
+import {nextTick, onMounted, ref, computed} from "vue";
 import router from "@/router";
 import goldIcon from '@/assets/icons/Gold.png';
 import silberIcon from '@/assets/icons/Silber.png';
@@ -14,6 +14,7 @@ let filterStepsequences = ref<[]>([]);
 const isFiltered = ref(false);
 const isStepsequence = ref(false);
 const searchQuery = ref('');
+const activeFilter = ref<number | null>(null);
 
 onMounted(() => {
   fetch(url)
@@ -22,6 +23,20 @@ onMounted(() => {
         dances.value = data;
         nextTick();
       });
+});
+
+const filteredDances = computed(() => {
+  return dances.value.filter((dance) =>
+      dance.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+  );
+});
+
+const filteredStepsequences = computed(() => {
+  const list = isFiltered.value ? filterStepsequences.value : stepsequences.value;
+
+  return list.filter((sequence) =>
+      sequence.name.toLowerCase().includes(searchQuery.value.toLowerCase())
+  );
 });
 
 const getStepsequencesFromDance = (danceId: number) => {
@@ -51,6 +66,7 @@ const openDanceView = (stepsequenceId: string) => {
 const filter = (badge: number) => {
   filterStepsequences.value = [];
   isFiltered.value = true;
+  activeFilter.value = badge;
 
   for (let i = 0; i < stepsequences.value.length; i++) {
     if (stepsequences.value[i].badge.id === badge) {
@@ -61,6 +77,7 @@ const filter = (badge: number) => {
 
 const resetFilters = () => {
   isFiltered.value = false;
+  activeFilter.value = null;
 }
 </script>
 
@@ -83,11 +100,17 @@ const resetFilters = () => {
       <!-- Search Section -->
       <div class="search-section">
         <div class="search-container">
-          <input
+          <input v-if="isStepsequence"
               type="text"
               v-model="searchQuery"
               class="search-input"
-              placeholder="Suchen Sie nach Tänzen..."
+              placeholder="Suchen Sie nach Figuren ..."
+          >
+          <input v-else
+                 type="text"
+                 v-model="searchQuery"
+                 class="search-input"
+                 placeholder="Suchen Sie nach Tänzen ..."
           >
           <button class="search-button">
             <img :src="searchIcon" alt="Suchen">
@@ -103,13 +126,13 @@ const resetFilters = () => {
       <!--Filters for the Stepsequences -->
       <div v-else id="filter-container">
         <div id="filter-buttons">
-          <button class="filter-button" @click="filter(3)">
+          <button class="filter-button" :class="{ active: activeFilter === 3 }" @click="filter(3)">
             <img :src="goldIcon" alt="Filterfunktion für Gold">
           </button>
-          <button class="filter-button" @click="filter(2)">
+          <button class="filter-button" :class="{ active: activeFilter === 2 }" @click="filter(2)">
             <img :src="silberIcon" alt="Filterfunktion für Silber">
           </button>
-          <button class="filter-button" @click="filter(1)">
+          <button class="filter-button" :class="{ active: activeFilter === 1 }" @click="filter(1)">
             <img :src="bronzeIcon" alt="Filterfunktion für Bronze">
           </button>
         </div>
@@ -120,10 +143,10 @@ const resetFilters = () => {
     <!-- Dance Grid -->
     <div class="dance-grid">
 
-      <!--Dance Grid if Dances are shown-->
+      <!--Dances shown-->
       <template v-if="!isStepsequence">
         <div
-            v-for="dance in dances"
+            v-for="dance in filteredDances"
             :key="dance.id"
             class="dance-card"
             @click="getStepsequencesFromDance(dance.id)"
@@ -140,10 +163,10 @@ const resetFilters = () => {
         </div>
       </template>
 
-      <!--Dance Grid if there are stepsequences and unfiltered -->
+      <!-- Stepsequences unfiltered -->
       <template v-else-if="isStepsequence && !isFiltered">
         <div
-            v-for="stepsequence in stepsequences"
+            v-for="stepsequence in filteredStepsequences"
             :key="stepsequence.id"
             class="dance-card"
             @click="openDanceView(stepsequence.id)"
@@ -157,20 +180,18 @@ const resetFilters = () => {
             >★</span>
           </div>
           <span class="bpm-indicator">{{ stepsequence.dance.defaultBPM }} BPM</span>
-
           <span v-if="stepsequence.badge.name === 'Bronze'"><img :src="bronzeIcon" class="badges-icons"></span>
           <span v-else-if="stepsequence.badge.name === 'Silber'"><img :src="silberIcon" class="badges-icons"></span>
           <span v-else-if="stepsequence.badge.name === 'Gold'"><img :src="goldIcon" class="badges-icons"></span>
           <span v-else>{{ stepsequence.badge.name }}</span>
-
         </div>
       </template>
 
-      <!--Dance Grid if there are stepsequences and filtered -->
+      <!-- Stepsequences filtered -->
       <template v-else>
         <div v-if="filterStepsequences.length === 0">Es gibt keine Tanzschritte mit diesem Abzeichen.</div>
         <div
-            v-for="stepsequence in filterStepsequences"
+            v-for="stepsequence in filteredStepsequences"
             :key="stepsequence.id"
             class="dance-card"
             @click="openDanceView(stepsequence.id)"
@@ -184,12 +205,10 @@ const resetFilters = () => {
             >★</span>
           </div>
           <span class="bpm-indicator">{{ stepsequence.dance.defaultBPM }} BPM</span>
-
           <span v-if="stepsequence.badge.name === 'Bronze'"><img :src="bronzeIcon" class="badges-icons"></span>
           <span v-else-if="stepsequence.badge.name === 'Silber'"><img :src="silberIcon" class="badges-icons"></span>
           <span v-else-if="stepsequence.badge.name === 'Gold'"><img :src="goldIcon" class="badges-icons"></span>
           <span v-else>{{ stepsequence.badge.name }}</span>
-
         </div>
       </template>
     </div>
@@ -197,7 +216,7 @@ const resetFilters = () => {
 </template>
 
 <style scoped lang="scss">
-// Variables
+// Farben
 $color-purple-primary: #8A2BE2;
 $color-purple-light: #9D4EDD;
 $color-purple-dark: #6A0DAD;
@@ -205,6 +224,7 @@ $color-white: #FFFFFF;
 $color-gray-light: #F5F5F5;
 $color-gray: #E0E0E0;
 $color-text-dark: #333333;
+
 #reset-filter {
   margin-left: 20px;
 
@@ -220,7 +240,6 @@ $color-text-dark: #333333;
   height: 100vh;
 }
 
-// Search Section
 .search-section {
   margin-bottom: 2rem;
 }
@@ -241,7 +260,7 @@ $color-text-dark: #333333;
   width: 100%;
   height: 3rem;
   padding: 0 3rem 0 1.5rem;
-  border: 2px solid $colorPurpleLight;
+  border: 2px solid $color-purple-light;
   border-radius: 1.5rem;
   font-size: 1rem;
   color: $color-text-dark;
@@ -278,29 +297,23 @@ $color-text-dark: #333333;
   }
 }
 
-// Button
 .main-button {
   margin-bottom: 2rem;
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 0.5rem;
-  background-color: $colorVioletLight;
+  background-color: $color-purple-dark;
   color: $color-white;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover {
-    background-color: $colorPurpleLight;
+    background-color: $color-purple-primary;
     transform: translateY(-1px);
-  }
-
-  img {
-    width: 1rem;
   }
 }
 
-// Dance Grid
 .dance-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -309,7 +322,7 @@ $color-text-dark: #333333;
 }
 
 .dance-card {
-  background-color: $colorVioletLight;
+  background-color: $color-purple-dark;
   border-radius: 1rem;
   padding: 2rem;
   color: $color-white;
@@ -325,7 +338,7 @@ $color-text-dark: #333333;
   &:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-    background-color: $color-purple-light;
+    background-color: $color-purple-primary;
   }
 }
 
@@ -357,7 +370,7 @@ $color-text-dark: #333333;
 }
 
 #filter-buttons {
-  background-color: $colorVioletLight;
+  background-color: $color-purple-dark;
   box-shadow: none;
   height: 100%;
   padding: 0.5rem;
@@ -371,16 +384,32 @@ $color-text-dark: #333333;
 
   .filter-button {
     background: none;
+    border: none;
+    padding: 0;
+    border-radius: 50%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    &.active {
+      border: 2px solid $color-purple-primary;
+      border-radius: 50%;
+      box-shadow: 0 0 5px rgba(138, 43, 226, 0.5);
+    }
 
     img {
       margin: 10px;
       width: 3rem;
-      &:hover {
-        transform: translateY(-1px);
-      }
+      transition: transform 0.2s ease;
+    }
+
+    &:hover img {
+      transform: translateY(-1px);
     }
   }
 }
+
 
 #filter-container {
   display: flex;
@@ -389,13 +418,12 @@ $color-text-dark: #333333;
   align-items: end;
 }
 
-// Responsive Design
 @media (max-width: 768px) {
   .header-section {
-    display: flex;
     flex-direction: column;
     align-items: center;
   }
+
   .main-page {
     padding: 1rem;
   }
