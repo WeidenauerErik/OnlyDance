@@ -116,11 +116,13 @@ onUnmounted(() => {
         <button class="main-button" @click="router.go(-1)" v-if="!props.isInEditMode">← Zurück zum Menü</button>
         <button class="main-button" @click="router.go(-1)" v-else>← Zurück zum Menü</button>
       </div>
-
+      
       <span id="infoCounterDisplay" v-if="!props.isInEditMode">
 
-        <span v-if="props.danceStepCounter < (parseInt(props.danceStepLength)+1)">{{ (props.danceStepCounter) % (parseInt(props.danceStepLength)+1) }}</span>
-        <span v-else>{{ (props.danceStepCounter) % (parseInt(props.danceStepLength)) }}</span>
+        {{ props.danceStepCounter === 0
+          ? 0
+          : ((props.danceStepCounter - 1) % parseInt(props.danceStepLength)) + 1
+        }}
         /
         {{ props.danceStepLength }}
       </span>
