@@ -269,7 +269,7 @@ const saveDance = async () => {
     showCancelButton: true,
     preConfirm: () => {
       const danceId = (Swal.getPopup()?.querySelector('#danceSelect') as HTMLSelectElement)?.value;
-      const name = (Swal.getPopup()?.querySelector('#nameInput') as HTMLInputElement)?.value;
+      const name = (Swal.getPopup()?.querySelector('#nameInput') as HTMLInputElement)?.value.trim();
       const badgeId = (Swal.getPopup()?.querySelector('#badgeSelect') as HTMLSelectElement)?.value;
       const difficultyId = (Swal.getPopup()?.querySelector('#difficultySelect') as HTMLSelectElement)?.value;
 
@@ -277,6 +277,12 @@ const saveDance = async () => {
         Swal.showValidationMessage('Bitte gib einen Namen ein!');
         return;
       }
+      const nameRegex = /^[A-Za-zÄÖÜäöüß\s]+$/;
+      if (!nameRegex.test(name)) {
+        Swal.showValidationMessage('Der Name darf nur Buchstaben und Leerzeichen enthalten!');
+        return;
+      }
+
 
       return {
         danceId,

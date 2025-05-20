@@ -69,9 +69,9 @@ async function submitForm() {
     });
     try {
       const response = await axios.post("https://localhost/user/register", {
-        name: state.name,
-        email: state.email,
-        password: state.password,
+        name: state.name.trim(),
+        email: state.email.trim(),
+        password: state.password.trim(),
       });
       Toast.fire({
         icon: "success",
