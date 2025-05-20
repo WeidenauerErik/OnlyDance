@@ -85,7 +85,7 @@ watch(searchQuery, filterSearchResults);
 <template>
   <header class="navbar">
     <div class="navbar-container">
-      <RouterLink to="/" class="navbar-brand">
+      <RouterLink to="/mainpage" class="navbar-brand">
         <h1 class="navbar-title">OnlyDance</h1>
       </RouterLink>
 
