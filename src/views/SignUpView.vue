@@ -41,8 +41,8 @@ const state = reactive({
 
 const rules = {
   name: {required,alpha,maxLength: maxLength(10)},
-  email: {required, email},
-  password: {minLength: minLength(3), required},
+  email: {required, email,maxLength: maxLength(40)},
+  password: {minLength: minLength(3), required,maxLength: maxLength(50)},
   passwordRepeat: {
     sameAs: sameAs(computed(() => state.password)),
     required,
