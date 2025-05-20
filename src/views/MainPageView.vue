@@ -460,8 +460,4 @@ $color-text-dark: #333333;
     grid-template-columns: 1fr;
   }
 }
-
-template {
-  overflow: scroll;
-}
 </style>

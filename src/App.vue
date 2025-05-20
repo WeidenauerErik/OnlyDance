@@ -24,4 +24,7 @@ import FooterComponent from './components/FooterComponent.vue';
 </template>
 
 <style scoped lang="scss">
+main {
+  overflow: scroll;
+}
 </style>
