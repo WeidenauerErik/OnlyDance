@@ -210,8 +210,7 @@ const loadData = async (url) => {
     return acc;
   }, {});
   return dances;
-};
-
+}
 
 const saveDance = async () => {
   const difficulty = {
@@ -222,90 +221,103 @@ const saveDance = async () => {
     4: "5"
   };
 
-  const dances = await loadData("/dance/dances");
-  const badges = await loadData("/badge/badges");
+  let dances;
+  let badges;
 
-  const dancePrompt = await Swal.fire({
-    title: 'Gib mir bitte noch ein paar Informationen!',
-    text: 'Zu welchem Tanz willst du ihn hinzufügen?',
-    input: 'select',
-    inputOptions: dances,
-    icon: 'info',
+  try {
+    dances = await loadData("/dance/dances");
+    badges = await loadData("/badge/badges");
+  } catch (e) {
+    Swal.fire('Server wurde nicht gefunden!',
+        '',
+        'error');
+  }
+
+  const htmlForm = `
+  <div style="display: flex; flex-direction: column; gap: 10px">
+    <label>Zugehöriger Tanz:
+      <select id="danceSelect" class="swal2-select" style="width: 70%; border: 1px solid black;">
+        ${Object.entries(dances).map(([id, name]) => `<option value="${id}">${name}</option>`).join('')}
+      </select>
+    </label>
+
+    <label>Name der Figur:
+      <input type="text" id="nameInput" class="swal2-input" placeholder="Figurenname" style="width: 70%; border: 1px solid black; color: black"/>
+    </label>
+
+    <label>Abzeichen:
+      <select id="badgeSelect" class="swal2-select" style="width: 70%; border: 1px solid black;">
+        ${Object.entries(badges).map(([id, name]) => `<option value="${id}">${name}</option>`).join('')}
+      </select>
+    </label>
+
+    <label>Schwierigkeitsgrad:
+      <select id="difficultySelect" class="swal2-select" style="width: 70%; border: 1px solid black;">
+        ${Object.entries(difficulty).map(([id, name]) => `<option value="${id}">${name}</option>`).join('')}
+      </select>
+    </label>
+  </div>
+`;
+
+
+  const result = await Swal.fire({
+    title: 'Schrittfolge speichern',
+    html: htmlForm,
+    focusConfirm: false,
+    confirmButtonText: 'Speichern',
+    confirmButtonColor: '#551167',
     showCancelButton: true,
-  });
+    preConfirm: () => {
+      const danceId = (Swal.getPopup()?.querySelector('#danceSelect') as HTMLSelectElement)?.value;
+      const name = (Swal.getPopup()?.querySelector('#nameInput') as HTMLInputElement)?.value;
+      const badgeId = (Swal.getPopup()?.querySelector('#badgeSelect') as HTMLSelectElement)?.value;
+      const difficultyId = (Swal.getPopup()?.querySelector('#difficultySelect') as HTMLSelectElement)?.value;
 
-  if (!dancePrompt.value) return;
-
-  const namePrompt = await Swal.fire({
-    title: 'Gib mir bitte noch ein paar Informationen!',
-    text: 'Wie soll die Figur heißen?',
-    input: 'text',
-    icon: 'info',
-    showCancelButton: true,
-    confirmButtonText: 'Weiter',
-    inputValidator: (value) => {
-      if (!value) {
-        return 'Bitte gib einen Namen ein!';
+      if (!name) {
+        Swal.showValidationMessage('Bitte gib einen Namen ein!');
+        return;
       }
+
+      return {
+        danceId,
+        name,
+        badgeId,
+        difficultyId,
+      };
     }
   });
 
-  if (!namePrompt.value) return;
+  if (!result.isConfirmed || !result.value) return;
 
-  const badgePrompt = await Swal.fire({
-    title: 'Gib mir bitte noch ein paar Informationen!',
-    text: 'Welches Abzeichen soll der Tanzschritt bekommen?',
-    input: 'select',
-    inputOptions: badges,
-    icon: 'info',
-    showCancelButton: true,
-    confirmButtonText: 'Weiter'
-  });
-
-  if (!badgePrompt.value) return;
-
-  const difficultyPrompt = await Swal.fire({
-    title: 'Gib mir bitte noch ein paar Informationen!',
-    text: 'Welches Schwierigkeitsgrad soll der Tanzschritt bekommen?',
-    input: 'select',
-    inputOptions: difficulty,
-    icon: 'info',
-    showCancelButton: true,
-    confirmButtonText: 'Weiter'
-  });
-
-  if (!difficultyPrompt.value) return;
+  const { danceId, name, badgeId, difficultyId } = result.value;
 
   const output = {
-    name: namePrompt.value,
-    badge_id: badgePrompt.value,
-    difficulty: difficultyPrompt.value,
-    dance_id: dancePrompt.value,
+    name,
+    badge_id: badgeId,
+    difficulty: difficultyId,
+    dance_id: danceId,
     steps: steps.value,
   };
 
-  const checkValues = await Swal.fire({
-    title: 'Stimmen die Daten überein!',
-    html: 'Zugehöriger Tanz: ' + dances[dancePrompt.value] + '<br>' +
-        'Name: ' + namePrompt.value + '<br>' +
-        'Abzeichen: ' + badges[badgePrompt.value] + '<br>' +
-        'Schwierigkeit: ' + difficulty[difficultyPrompt.value],
+  const confirm = await Swal.fire({
+    title: 'Stimmen die Daten überein?',
+    html: `Zugehöriger Tanz: ${dances[danceId]}<br>
+           Name: ${name}<br>
+           Abzeichen: ${badges[badgeId]}<br>
+           Schwierigkeit: ${difficulty[difficultyId]}`,
     icon: 'info',
     showCancelButton: true,
     confirmButtonText: 'Ja',
+    confirmButtonColor: '#551167',
     cancelButtonText: 'Nein'
   });
 
-
-  if (checkValues.isDismissed || checkValues.isDenied || checkValues.isCanceled) {
-    await saveDance();
+  if (!confirm.isConfirmed) {
+    await saveDance(); // Retry
   } else {
-
     try {
-      const response = await axios.post(ServerUrl + '/stepsequence/add', output, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
+      await axios.post(ServerUrl + '/stepsequence/add', output, {
+        headers: { 'Content-Type': 'application/json' }
       });
       Swal.fire('Erfolgreich gespeichert!', '', 'success');
     } catch (error) {
@@ -314,6 +326,7 @@ const saveDance = async () => {
     }
   }
 };
+
 </script>
 
 <template>
@@ -388,9 +401,9 @@ const saveDance = async () => {
   justify-content: space-around;
 
   .inputContainerElements {
+    width: 10px;
     display: flex;
     flex-direction: column;
-    width: 17%;
 
     .inputContainerInnerElements {
       display: flex;

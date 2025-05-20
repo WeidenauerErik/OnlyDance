@@ -142,10 +142,9 @@ const resetFilters = () => {
 
     <!-- Dance Grid -->
     <div class="dance-grid">
-
       <!--Dances shown-->
       <template v-if="!isStepsequence">
-        <div
+        <div v-if="filteredDances.length !== 0"
             v-for="dance in filteredDances"
             :key="dance.id"
             class="dance-card"
@@ -161,11 +160,15 @@ const resetFilters = () => {
           </div>
           <span class="bpm-indicator">{{ dance.defaultBPM }} BPM</span>
         </div>
+        <span v-else>
+          Es gibt keine Tänze nach diese Prompt oder sie werden noch geladen :)
+        </span>
       </template>
 
       <!-- Stepsequences unfiltered -->
       <template v-else-if="isStepsequence && !isFiltered">
         <div
+
             v-for="stepsequence in filteredStepsequences"
             :key="stepsequence.id"
             class="dance-card"
@@ -189,8 +192,9 @@ const resetFilters = () => {
 
       <!-- Stepsequences filtered -->
       <template v-else>
-        <div v-if="filterStepsequences.length === 0">Es gibt keine Tanzschritte mit diesem Abzeichen.</div>
+        <div v-if="filteredStepsequences.length === 0">Es gibt keine Tanzschritte mit diesem Abzeichen.</div>
         <div
+            v-if="filterStepsequences.length !== 0"
             v-for="stepsequence in filteredStepsequences"
             :key="stepsequence.id"
             class="dance-card"
@@ -210,6 +214,9 @@ const resetFilters = () => {
           <span v-else-if="stepsequence.badge.name === 'Gold'"><img :src="goldIcon" class="badges-icons"></span>
           <span v-else>{{ stepsequence.badge.name }}</span>
         </div>
+        <span v-else>
+          Es gibt keine Figuren mit diesem Prompt!
+        </span>
       </template>
     </div>
   </div>

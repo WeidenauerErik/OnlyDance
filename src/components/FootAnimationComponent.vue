@@ -176,7 +176,7 @@ onUnmounted(() => {
 
     <div class="controlsContainerElement">
 
-      <h1 id="infoTextDisplay"> {{ props.danceName }}</h1>
+      <h1 id="infoTextDisplay" v-if="!props.isInEditMode"> {{ props.danceName }}</h1>
 
     </div>
 

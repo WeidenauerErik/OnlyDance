@@ -35,8 +35,8 @@ import {RouterLink} from "vue-router";
         <span>|</span>
         <RouterLink to="/checklist" class="linksFooter">Checkliste</RouterLink>
         <span>|</span>
-        <RouterLink to="/events" class="linksFooter">EventKalendar</RouterLink>
-        <span>|</span>
+        <!--<RouterLink to="/events" class="linksFooter">EventKalendar</RouterLink>
+        <span>|</span>-->
         <RouterLink to="/imprint" class="linksFooter">Impressum</RouterLink>
 
       </div>
