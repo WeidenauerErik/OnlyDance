@@ -37,7 +37,7 @@ class Stepsequence
 
     #[ORM\ManyToOne(inversedBy: 'stepsequences')]
     #[ORM\JoinColumn(nullable: false)]
-    #[Groups(['stepsequence:read'])]
+    #[Groups(['stepsequence:read','checklist:read'])]
     private ?Dance $dance = null;
 
 

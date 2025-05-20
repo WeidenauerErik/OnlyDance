@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/badge')]
-final class BadgeController extends AbstractController
+class BadgeController extends AbstractController
 {
     #[Route(name: 'app_badge_index', methods: ['GET'])]
     public function index(BadgeRepository $badgeRepository): Response
