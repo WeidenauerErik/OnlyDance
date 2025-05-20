@@ -3,9 +3,11 @@
     <section class="auth-section">
       <h1 class="auth-title">Willkommen zurück!</h1>
       <div class="auth-form">
-        <input v-model="email" type="email" placeholder="E-Mail" required/>
-        <input v-model="password" type="password" placeholder="Passwort" required/>
-        <button type="submit" class="auth-button" @click="handleLogin">Einloggen</button>
+        <input v-model="state.email" type="email" @blur="v$.email.$touch" placeholder="E-Mail" required />
+        <p v-if="v$.email.$error" class="error-text">Email muss das richtige Format haben</p>
+        <input v-model="state.password" type="password" @blur="v$.password.$touch" placeholder="Passwort" required />
+        <p v-if="v$.password.$error" class="error-text">Passwort muss das richtige Format haben</p>
+        <button :disabled="v$.$invalid" type="submit" class="auth-button" @click="handleLogin">Einloggen</button>
       </div>
       <RouterLink to="/signup" class="switch-link">Noch keinen Account? Jetzt registrieren</RouterLink>
     </section>
@@ -14,16 +16,27 @@
 
 <script setup>
 import Swal from 'sweetalert2'
-import {ref} from "vue";
+import {computed, reactive, ref} from "vue";
 import axios from "axios";
 import {useAuthStore} from "@/stores/auth.js";
 import router from "@/router/index.js";
+import {alpha, email, maxLength, minLength, required, sameAs} from "@vuelidate/validators";
+import {useVuelidate} from "@vuelidate/core";
 
 const auth = useAuthStore();
+;
 
+const state = reactive({
+  email: '',
+  password: '',
+})
 
-const email = ref("");
-const password = ref("");
+const rules = {
+  email: {required, email,maxLength: maxLength(40)},
+  password: {minLength: minLength(3), required,maxLength: maxLength(50)},
+}
+
+const v$ = useVuelidate(rules, state);
 
 async function handleLogin() {
 
@@ -40,8 +53,8 @@ async function handleLogin() {
   });
   try {
     const response = await axios.post("https://localhost/api/login", {
-      email: email.value,
-      password: password.value
+      email: state.email.trim(),
+      password: state.password.trim()
     })
     auth.login(response.data.token);
     Toast.fire({
@@ -113,6 +126,10 @@ async function handleLogin() {
 
     &:hover {
       background-color: $colorPurpleLight;
+    }
+    &:disabled{
+      background-color: grey;
+
     }
   }
 }

@@ -41,8 +41,8 @@ const state = reactive({
 
 const rules = {
   name: {required,alpha,maxLength: maxLength(10)},
-  email: {required, email},
-  password: {minLength: minLength(3), required},
+  email: {required, email,maxLength: maxLength(40)},
+  password: {minLength: minLength(3), required,maxLength: maxLength(50)},
   passwordRepeat: {
     sameAs: sameAs(computed(() => state.password)),
     required,
@@ -69,9 +69,9 @@ async function submitForm() {
     });
     try {
       const response = await axios.post("https://localhost/user/register", {
-        name: state.name,
-        email: state.email,
-        password: state.password,
+        name: state.name.trim(),
+        email: state.email.trim(),
+        password: state.password.trim(),
       });
       Toast.fire({
         icon: "success",
