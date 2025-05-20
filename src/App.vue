@@ -11,7 +11,10 @@ import FooterComponent from './components/FooterComponent.vue';
       <header>
         <NavBarComponent/>
       </header>
+
+      <main>
       <RouterView/>
+      </main>
     </div>
 
     <footer id="footer">
@@ -21,21 +24,7 @@ import FooterComponent from './components/FooterComponent.vue';
 </template>
 
 <style scoped lang="scss">
-#pageContainer {
-  position: relative;
-  min-height: 100vh;
-  background-color: $colorWhite;
-
-  #contentWrap {
-    padding-bottom: 2.5rem; /* Footer height */
-  }
-
-  #footer {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    height: 2.5rem; /* Footer height */
-  }
+main {
+  overflow: scroll;
 }
-
 </style>
