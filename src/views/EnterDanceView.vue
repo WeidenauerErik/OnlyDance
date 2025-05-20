@@ -236,23 +236,23 @@ const saveDance = async () => {
   const htmlForm = `
   <div style="display: flex; flex-direction: column; gap: 10px">
     <label>Zugehöriger Tanz:
-      <select id="danceSelect" class="swal2-select" style="width: 70%; border: 1px solid black;">
+      <select id="danceSelect" class="swal2-select" style="width: 70%; border: 1px solid #551167;border-radius: 10px">
         ${Object.entries(dances).map(([id, name]) => `<option value="${id}">${name}</option>`).join('')}
       </select>
     </label>
 
     <label>Name der Figur:
-      <input type="text" id="nameInput" class="swal2-input" placeholder="Figurenname" style="width: 70%; border: 1px solid black; color: black"/>
+      <input type="text" id="nameInput" class="swal2-input" placeholder="Figurenname" style="width: 70%; border: 1px solid #551167; color: black;border-radius: 10px"/>
     </label>
 
     <label>Abzeichen:
-      <select id="badgeSelect" class="swal2-select" style="width: 70%; border: 1px solid black;">
+      <select id="badgeSelect" class="swal2-select" style="width: 70%; border: 1px solid #551167;border-radius: 10px">
         ${Object.entries(badges).map(([id, name]) => `<option value="${id}">${name}</option>`).join('')}
       </select>
     </label>
 
     <label>Schwierigkeitsgrad:
-      <select id="difficultySelect" class="swal2-select" style="width: 70%; border: 1px solid black;">
+      <select id="difficultySelect" class="swal2-select" style="width: 70%; border: 1px solid #551167;border-radius: 10px">
         ${Object.entries(difficulty).map(([id, name]) => `<option value="${id}">${name}</option>`).join('')}
       </select>
     </label>
