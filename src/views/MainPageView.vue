@@ -120,7 +120,7 @@ const resetFilters = () => {
 
       <!--Get all Stepsequences --->
       <div v-if="!isStepsequence">
-        <button @click="getAllStepsequences" v-if="!isStepsequence" class="main-button">Alle Tanzschritte</button>
+        <button @click="getAllStepsequences" v-if="!isStepsequence" class="main-button">Alle Tanzschritte -></button>
       </div>
 
       <!--Filters for the Stepsequences -->
@@ -223,15 +223,6 @@ const resetFilters = () => {
 </template>
 
 <style scoped lang="scss">
-// Farben
-$color-purple-primary: #8A2BE2;
-$color-purple-light: #9D4EDD;
-$color-purple-dark: #6A0DAD;
-$color-white: #FFFFFF;
-$color-gray-light: #F5F5F5;
-$color-gray: #E0E0E0;
-$color-text-dark: #333333;
-
 #reset-filter {
   margin-left: 20px;
 
@@ -267,17 +258,16 @@ $color-text-dark: #333333;
   width: 100%;
   height: 3rem;
   padding: 0 3rem 0 1.5rem;
-  border: 2px solid $color-purple-light;
+  border: 2px solid $colorVioletLight;
   border-radius: 1.5rem;
   font-size: 1rem;
-  color: $color-text-dark;
-  background-color: $color-white;
+  background-color: $colorWhite;
   transition: all 0.2s ease;
 
   &:focus {
     outline: none;
-    border-color: $color-purple-primary;
-    box-shadow: 0 0 0 3px rgba($color-purple-primary, 0.1);
+    border-color: $colorVioletDark;
+    box-shadow: 0 0 0 3px rgba($colorVioletDark, 0.1);
   }
 
   &::placeholder {
@@ -309,14 +299,14 @@ $color-text-dark: #333333;
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 0.5rem;
-  background-color: $color-purple-dark;
-  color: $color-white;
+  background-color: $colorVioletLight;
+  color: $colorWhite;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
 
   &:hover {
-    background-color: $color-purple-primary;
+    background-color: $colorPurpleLight;
     transform: translateY(-1px);
   }
 }
@@ -329,10 +319,10 @@ $color-text-dark: #333333;
 }
 
 .dance-card {
-  background-color: $color-purple-dark;
+  background-color: $colorVioletLight;
   border-radius: 1rem;
   padding: 2rem;
-  color: $color-white;
+  color: $colorWhite;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
@@ -345,7 +335,7 @@ $color-text-dark: #333333;
   &:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-    background-color: $color-purple-primary;
+    background-color: $colorPurpleLight;
   }
 }
 
@@ -359,7 +349,7 @@ $color-text-dark: #333333;
   margin-bottom: 1rem;
 
   .difficulty-star {
-    color: $color-white;
+    color: $colorWhite;
     font-size: 1.2rem;
     margin: 0 0.2rem;
   }
@@ -377,7 +367,7 @@ $color-text-dark: #333333;
 }
 
 #filter-buttons {
-  background-color: $color-purple-dark;
+  background-color: $colorVioletLight;
   box-shadow: none;
   height: 100%;
   padding: 0.5rem;
@@ -400,7 +390,7 @@ $color-text-dark: #333333;
     align-items: center;
 
     &.active {
-      border: 2px solid $color-purple-primary;
+      border: 2px solid $colorPurpleLight;
       border-radius: 50%;
       box-shadow: 0 0 5px rgba(138, 43, 226, 0.5);
     }

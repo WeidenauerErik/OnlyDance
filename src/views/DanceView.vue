@@ -6,7 +6,6 @@ import type {FootStep, Step} from "@/tsTypes/interfacesDanceView.ts";
 import playIcon from "@/assets/icons/playIcon.svg";
 import pauseIcon from "@/assets/icons/pauseIcon.svg";
 
-
 const props = defineProps({
   id : String
 });

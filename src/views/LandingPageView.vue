@@ -19,15 +19,13 @@
 </template>
 
 <script setup>
-// Hier kannst du deine Logik hinzufügen
 </script>
 
 <style scoped lang="scss">
 .hero-page {
   min-height: 100vh;
   background: linear-gradient(to bottom right, #f3e8ff, #fce7f3, #ffffff);
-  color: #2d3748;
-  font-family: 'Helvetica Neue', sans-serif;
+  color: $colorVioletDark;
 }
 
 .hero-section {
@@ -43,7 +41,7 @@
   font-size: 3rem;
   font-weight: 800;
   line-height: 1.2;
-  color: #7e22ce;
+  color: $colorPurpleLight;
   margin-bottom: 1rem;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
 

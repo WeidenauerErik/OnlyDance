@@ -87,7 +87,7 @@ async function handleLogin() {
   width: 100%;
   max-width: 400px;
   padding: 2rem;
-  background: white;
+  background: $colorWhite;
   border-radius: 1.5rem;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
