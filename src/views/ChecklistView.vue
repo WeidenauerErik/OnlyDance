@@ -3,13 +3,13 @@ import playIcon from '@/assets/icons/playIcon.svg';
 import filledFavoriteIcon from '@/assets/icons/filledHearthWhiteIcon.svg';
 import {useAuthStore} from "@/stores/auth.ts";
 
-const url = import.meta.env.VITE_ServerIP + "/user/get";
+const url = import.meta.env.VITE_ServerIP + "/checklist/user/get";
 const auth = useAuthStore();
 console.log(auth.token)
 
 fetch(url, {
   headers: {
-    "Authorization": "Bearer ${auth.token}",
+    "Authorization": `Bearer ${auth.token}`,
   }
 })
   .then(response => response.json())
