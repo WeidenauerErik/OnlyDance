@@ -65,6 +65,7 @@ class AppFixtures extends Fixture
             throw new \RuntimeException("No JSON files found in: " . $dataDir);
         }
 
+        $index = 0;
         foreach ($finder as $file) {
             $content = $file->getContents();
             $data = json_decode($content, true);
@@ -124,6 +125,8 @@ class AppFixtures extends Fixture
             }
 
             $manager->persist($stepsequence);
+            $this->addReference('stepsequence_' . $index, $stepsequence);
+            $index++;
         }
 
 

@@ -215,15 +215,15 @@ class ChecklistController extends AbstractController
     }
 
     #[Route("/checklist/delete", name: 'app_checklist_delete', methods: ['POST'])]
-    public function delete(Request $request, EntityManagerInterface $entityManager,ChecklistRepository $checklistRepository,StepsequenceRepository $stepsequenceRepository): JsonResponse
+    public function delete(Request $request, UserRepository $userRepository ,EntityManagerInterface $entityManager,ChecklistRepository $checklistRepository,StepsequenceRepository $stepsequenceRepository): JsonResponse
     {
 
 
         $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
-        $user = $this->getUser();
+        $jwtUser = $this->getUser();
 
         $data = json_decode($request->getContent(), true);
-        if (!isset($data['checklist_id'], $data['stepsequence_id'])) {
+        if (!isset($data['checklist_id'])) {
             return new JsonResponse(['error' => 'Missing required fields'], 400);
         }
 
@@ -232,7 +232,13 @@ class ChecklistController extends AbstractController
             return new JsonResponse(['error' => 'Checklist not found'], 404);
         }
 
+        $user = $userRepository->findOneBy(['email' => $jwtUser->getUserIdentifier()]);
 
+        $user->removeChecklist($checklist);
+
+
+        $user->removeChecklist($checklist);
+        $entityManager->remove($checklist);
         $entityManager->flush();
 
 
