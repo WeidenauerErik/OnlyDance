@@ -152,6 +152,10 @@ class AppFixtures extends Fixture
             $randomUser = $this->getReference('user_' . rand(0, 19),User::class);
             $checklist->setUserId($randomUser);
 
+            $checklist->addStepsequence($this->getReference('stepsequence_' . 1,Stepsequence::class));
+            $checklist->addStepsequence($this->getReference('stepsequence_' . rand(2, 4),Stepsequence::class));
+            $checklist->addStepsequence($this->getReference('stepsequence_' . rand(5, 7),Stepsequence::class));
+
             $manager->persist($checklist);
         }
 

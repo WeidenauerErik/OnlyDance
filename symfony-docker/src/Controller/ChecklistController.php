@@ -181,6 +181,68 @@ class ChecklistController extends AbstractController
 
 
 
+    // deleters
+
+    #[Route("/checklist/delete/stepsequence", name: 'app_checklist_delete_stepsequence', methods: ['POST'])]
+    public function deleteStepsequence(Request $request, EntityManagerInterface $entityManager,ChecklistRepository $checklistRepository,StepsequenceRepository $stepsequenceRepository): JsonResponse
+    {
+
+
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+        $user = $this->getUser();
+
+        $data = json_decode($request->getContent(), true);
+        if (!isset($data['checklist_id'], $data['stepsequence_id'])) {
+            return new JsonResponse(['error' => 'Missing required fields'], 400);
+        }
+
+        $checklist = $checklistRepository->find($data['checklist_id']);
+        if (!$checklist) {
+            return new JsonResponse(['error' => 'Checklist not found'], 404);
+        }
+        $stepsequence = $stepsequenceRepository->find($data['stepsequence_id']);
+        if (!$stepsequence) {
+            return new JsonResponse(['error' => 'Stepsequence not found'], 404);
+        }
+
+        $checklist->removeStepsequence($stepsequence);
+        $entityManager->flush();
+
+
+
+        return new JsonResponse(['status' => 'Stepsequence succesfully removed from Checklist'], 200);
+
+    }
+
+    #[Route("/checklist/delete", name: 'app_checklist_delete', methods: ['POST'])]
+    public function delete(Request $request, EntityManagerInterface $entityManager,ChecklistRepository $checklistRepository,StepsequenceRepository $stepsequenceRepository): JsonResponse
+    {
+
+
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+        $user = $this->getUser();
+
+        $data = json_decode($request->getContent(), true);
+        if (!isset($data['checklist_id'], $data['stepsequence_id'])) {
+            return new JsonResponse(['error' => 'Missing required fields'], 400);
+        }
+
+        $checklist = $checklistRepository->find($data['checklist_id']);
+        if (!$checklist) {
+            return new JsonResponse(['error' => 'Checklist not found'], 404);
+        }
+
+
+        $entityManager->flush();
+
+
+
+        return new JsonResponse(['status' => 'Stepsequence succesfully removed from Checklist'], 200);
+
+    }
+
+
+
 }
 
 
