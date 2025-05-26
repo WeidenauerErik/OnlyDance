@@ -122,8 +122,6 @@ class ChecklistController extends AbstractController
     }
 
 
-
-
     // Getters
     #[IsGranted('ROLE_USER')]
     #[Route("/checklist/user/get", name: 'app_checklist_user', methods: ['GET'])]
@@ -161,6 +159,7 @@ class ChecklistController extends AbstractController
 
         return JsonResponse::fromJsonString($response);
     }
+
     #[Route("/checklist/get/{id}", name: 'app_checklist_get_id', methods: ['GET'])]
     public function getChecklistById(SerializerInterface $serializer, Checklist $checklist): JsonResponse
     {
@@ -170,21 +169,19 @@ class ChecklistController extends AbstractController
                 "json",
                 ['groups' => ['checklist:read']]
             );
-        }catch (NotFoundHttpException $e) {
+        } catch (NotFoundHttpException $e) {
             return new JsonResponse(['error' => 'Checklist not found'], 404);
         }
-
 
 
         return JsonResponse::fromJsonString($response);
     }
 
 
-
     // deleters
 
     #[Route("/checklist/delete/stepsequence", name: 'app_checklist_delete_stepsequence', methods: ['POST'])]
-    public function deleteStepsequence(Request $request, EntityManagerInterface $entityManager,ChecklistRepository $checklistRepository,StepsequenceRepository $stepsequenceRepository): JsonResponse
+    public function deleteStepsequence(Request $request, EntityManagerInterface $entityManager, ChecklistRepository $checklistRepository, StepsequenceRepository $stepsequenceRepository): JsonResponse
     {
 
 
@@ -209,13 +206,12 @@ class ChecklistController extends AbstractController
         $entityManager->flush();
 
 
-
         return new JsonResponse(['status' => 'Stepsequence succesfully removed from Checklist'], 200);
 
     }
 
     #[Route("/checklist/delete", name: 'app_checklist_delete', methods: ['POST'])]
-    public function delete(Request $request, UserRepository $userRepository ,EntityManagerInterface $entityManager,ChecklistRepository $checklistRepository,StepsequenceRepository $stepsequenceRepository): JsonResponse
+    public function delete(Request $request, UserRepository $userRepository, EntityManagerInterface $entityManager, ChecklistRepository $checklistRepository, StepsequenceRepository $stepsequenceRepository): JsonResponse
     {
 
 
@@ -235,18 +231,13 @@ class ChecklistController extends AbstractController
         $user = $userRepository->findOneBy(['email' => $jwtUser->getUserIdentifier()]);
 
         $user->removeChecklist($checklist);
-
-
-        $user->removeChecklist($checklist);
         $entityManager->remove($checklist);
         $entityManager->flush();
-
 
 
         return new JsonResponse(['status' => 'Stepsequence succesfully removed from Checklist'], 200);
 
     }
-
 
 
 }
