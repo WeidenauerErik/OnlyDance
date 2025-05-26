@@ -142,7 +142,7 @@ watch(searchQuery, filterSearchResults);
     <div v-if="auth.isAuthenticated" v-show="showMenu" class="mobile-menu" id="menuDropdown">
       <RouterLink to="/mainpage" class="mobile-link" @click="showMenu = false">Hauptseite</RouterLink>
       <RouterLink to="/checklist" class="mobile-link" @click="showMenu = false">Checkliste</RouterLink>
-      <RouterLink to="/events" class="mobile-link" @click="showMenu = false">Event Kalender</RouterLink>a
+      <RouterLink to="/events" class="mobile-link" @click="showMenu = false">Event Kalender</RouterLink>
       <div class="mobile-divider"></div>
       <button @click="auth.logout()" class="mobile-link">Ausloggen</button>
     </div>

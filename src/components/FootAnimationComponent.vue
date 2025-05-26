@@ -216,8 +216,8 @@ onUnmounted(() => {
 
     <div class="controlsContainerElement" id="controlsSettingsContainer">
 
-      <img :src="settingsIcon" alt="Einstellungen" id="settingsIcon" v-if="!props.isInEditMode">
-      <div v-else id="stepControlerContainer">
+      <!--<img :src="settingsIcon" alt="Einstellungen" id="settingsIcon">-->
+      <div id="stepControlerContainer" v-if="props.isInEditMode">
         <button @click="$emit('addStep')" class="stepControler" title="Füge einen Tanzschritt hinzu">+</button>
         <button @click="$emit('removeStep')" class="stepControler" title="Lösche den jetztigen Tanzschritt">-</button>
       </div>
