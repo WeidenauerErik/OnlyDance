@@ -85,15 +85,14 @@ watch(searchQuery, filterSearchResults);
 <template>
   <header class="navbar">
     <div class="navbar-container">
-      <RouterLink to="/mainpage" class="navbar-brand">
+      <RouterLink to="/" class="navbar-brand">
         <h1 class="navbar-title">OnlyDance</h1>
       </RouterLink>
 
       <nav class="navbar-nav">
         <div class="navbar-links desktop-only">
           <RouterLink to="/mainpage" class="nav-link">Hauptseite</RouterLink>
-          <RouterLink to="/checklist" class="nav-link" v-if="auth.isAuthenticated">Checkliste</RouterLink>
-          <!--<RouterLink to="/events" class="nav-link">Event Kalender</RouterLink>-->
+          <RouterLink to="/checklists" class="nav-link" v-if="auth.isAuthenticated">Checklisten</RouterLink>
         </div>
 
         <!-- Search -->
@@ -141,7 +140,7 @@ watch(searchQuery, filterSearchResults);
     </div>
     <div v-if="auth.isAuthenticated" v-show="showMenu" class="mobile-menu" id="menuDropdown">
       <RouterLink to="/mainpage" class="mobile-link" @click="showMenu = false">Hauptseite</RouterLink>
-      <RouterLink to="/checklist" class="mobile-link" @click="showMenu = false">Checkliste</RouterLink>
+      <RouterLink to="/checklists" class="mobile-link" @click="showMenu = false">Checklisten</RouterLink>
       <RouterLink to="/events" class="mobile-link" @click="showMenu = false">Event Kalender</RouterLink>
       <div class="mobile-divider"></div>
       <button @click="auth.logout()" class="mobile-link">Ausloggen</button>

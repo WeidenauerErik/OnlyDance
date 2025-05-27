@@ -2,81 +2,77 @@
 import playIcon from '@/assets/icons/playIcon.svg';
 import filledFavoriteIcon from '@/assets/icons/filledHearthWhiteIcon.svg';
 import {useAuthStore} from "@/stores/auth.ts";
-import {onMounted, ref} from "vue";
-import type {FavoriteStepsequences} from "@/tsTypes/interfaceChecklistView";
-import {useRouter} from "vue-router";
-import Swal from "sweetalert2";
-import axios from "axios";
+import {ref} from "vue";
+import router from "@/router";
 
-const $router = useRouter();
-const url = import.meta.env.VITE_ServerIP + "/checklist/user/get";
-//const url = import.meta.env.VITE_ServerIP + "/checklist/get";
+const props = defineProps({
+  id : String //id of the checklist displayed
+})
+const url = import.meta.env.VITE_ServerIP + `/checklist/get/${props.id}`;
 const auth = useAuthStore();
-const FavoriteStepSequences = ref<FavoriteStepsequences[]>([]);
-
-onMounted(() => {
-  fetch(url, {
-    headers: {
-      "Authorization": `Bearer ${auth.token}`,
-    }
-  })
-      .then(response => response.json())
-      .then(response => {
-        FavoriteStepSequences.value = response[0].stepsequences;
-      });
-
-});
-
-const removeFavoriteStepsequence = async (id: number) => {
-  const confirm = await Swal.fire({
-    title: 'Willst du die Figur wirklich von deiner Favoritenliste entfernen?',
-    icon: 'question',
-    showCancelButton: true,
-    confirmButtonText: 'Ja',
-    confirmButtonColor: '#551167',
-    cancelButtonText: 'Nein'
-  });
-
-  if (confirm.isConfirmed) {
-    console.log(id)
-    //TODO function has to be implemented
+console.log(auth.token)
+const checklist = ref({});
+fetch(url, {
+  headers: {
+    "Authorization": `Bearer ${auth.token}`,
   }
+})
+  .then(response => response.json())
+  .then(response => checklist.value = response);
+
+const backbtn = () => {
+  router.push("/checklists");
 }
 </script>
 
 <template>
-  <div id="checklistUpperContainer">
-    <div v-if="FavoriteStepSequences.length === 0">Du hast noch keine Figuren favorisiert :)</div>
-    <div v-else id="checklistContainer">
-      <div class="checklists" v-for="step in FavoriteStepSequences">
-        <p>{{ step.name }}</p>
-        <div class="innerChecklistContainer">
-          <img class="image-icons" @click="$router.push('danceview/'+step.id)" :src="playIcon" alt="AbspielKnopf: leitet einen zu der Tanzanimation weiter">
-          <img class="image-icons" @click="removeFavoriteStepsequence(step.id)" :src="filledFavoriteIcon" alt="Herz Emoji zum Favorisieren">
-        </div>
+  <!--<router-link to="/checklists" class="main-button">Back</router-link>-->
+  <button @click="backbtn" class="main-button">Zurück zu den Checklisten</button>
+  <div id="checklistContainer">
+    <div v-for="stepsequence in checklist.stepsequences" :key="stepsequence.id" class="checklists">
+      <p>{{ stepsequence.name }}</p>
+      <div class="innerChecklistContainer">
+        <img class="image-icons" @click="router.push('/danceview/'+stepsequence.id)" :src="playIcon" alt="AbspielKnopf: leitet einen zu der Tanzanimation weiter">
+        <img class="image-icons" :src="filledFavoriteIcon" alt="Herz Emoji zum Favorisieren">
       </div>
     </div>
   </div>
 </template>
 
 <style scoped lang="scss">
-#checklistUpperContainer {
-  min-height: 90vh;
-  display: flex;
-  justify-content: center;
-  margin-top: 5px;
-  width: 100%;
+.main-button {
+  margin-top: 20px;
+  margin-left: 20px;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  background-color: $colorVioletLight;
+  color: $colorWhite;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: $colorPurpleLight;
+    transform: translateY(-1px);
+  }
 }
 #checklistContainer {
-  width: 100%;
   display: flex;
   flex-direction: column;
+  min-height: 90vh;
   overflow: scroll;
   align-items: center;
+  margin-top: 5px;
 }
 
 .checklists {
+  width: 100%;
   border-radius: 30px;
+  margin: 0.5rem;
+}
+
+.checklists {
   width: 95%;
   background-color: $colorPurpleLight;
   display: flex;
@@ -84,7 +80,6 @@ const removeFavoriteStepsequence = async (id: number) => {
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  margin-bottom: 0.5rem;
   color: $colorWhite;
 }
 
@@ -94,7 +89,6 @@ const removeFavoriteStepsequence = async (id: number) => {
   gap: 2rem;
   justify-content: space-between;
 }
-
 .image-icons {
   width: 20px;
   height: 20px;

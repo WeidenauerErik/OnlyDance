@@ -9,6 +9,8 @@ import DanceView from '../views/DanceView.vue';
 import ImprintView from "../views/ImprintView.vue";
 import LoginView from '@/views/LoginView.vue';
 import EnterDanceView from "../views/EnterDanceView.vue"
+import ChecklistSelectionView from "@/views/ChecklistSelectionView.vue";
+import {useAuthStore} from "@/stores/auth.ts";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -39,9 +41,11 @@ const router = createRouter({
       component: EventCalendarView
     },
     {
-      path: '/checklist',
+      path: '/checklist/:id',
       name: 'Checklist',
-      component: ChecklistView
+      component: ChecklistView,
+      props: true
+
     },
     {
       path: '/danceview/:id',
@@ -58,8 +62,21 @@ const router = createRouter({
       path: '/enterDance',
       name: 'enterDance',
       component: EnterDanceView
+    },
+    {
+      path: '/checklists',
+      name: 'checklistSelection',
+      component: ChecklistSelectionView,
+      meta: {requiresAuth: true}
     }
   ],
 })
-
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore();
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    next('/login');
+  } else {
+    next();
+  }
+});
 export default router;

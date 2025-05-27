@@ -33,7 +33,7 @@ import {RouterLink} from "vue-router";
         <span>|</span>
         <RouterLink to="/mainpage" class="linksFooter">MainPage</RouterLink>
         <span>|</span>
-        <RouterLink to="/checklist" class="linksFooter">Checkliste</RouterLink>
+        <RouterLink to="/checklists" class="linksFooter">Checklisten</RouterLink>
         <span>|</span>
         <!--<RouterLink to="/events" class="linksFooter">EventKalendar</RouterLink>
         <span>|</span>-->
