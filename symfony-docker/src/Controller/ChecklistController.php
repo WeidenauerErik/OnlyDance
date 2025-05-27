@@ -113,6 +113,9 @@ class ChecklistController extends AbstractController
         if (!$stepsequence) {
             return new JsonResponse(['error' => 'Stepsequence not found'], 404);
         }
+        if($checklist->getUserId()->getEmail() !== $user->getUserIdentifier()){
+            return new JsonResponse(['error' => 'You cant add a stepsequence to a checklist that is not yours'], 403);
+        }
 
         $checklist->addStepsequence($stepsequence);
         $entityManager->flush();
@@ -202,6 +205,9 @@ class ChecklistController extends AbstractController
             return new JsonResponse(['error' => 'Stepsequence not found'], 404);
         }
 
+        if($checklist->getUserId()->getEmail() !== $user->getUserIdentifier()){
+            return new JsonResponse(['error' => 'You cant delete a stepsequence from a checklist that is not yours'], 403);
+        }
         $checklist->removeStepsequence($stepsequence);
         $entityManager->flush();
 
@@ -230,9 +236,16 @@ class ChecklistController extends AbstractController
 
         $user = $userRepository->findOneBy(['email' => $jwtUser->getUserIdentifier()]);
 
+        if($checklist->getUserId()->getEmail() !== $user->getUserIdentifier()){
+            return new JsonResponse(['error' => 'You cant delete a checklist that is not yours'], 403);
+        }
+
+
         $user->removeChecklist($checklist);
         $entityManager->remove($checklist);
         $entityManager->flush();
+
+
 
 
         return new JsonResponse(['status' => 'Stepsequence succesfully removed from Checklist'], 200);
