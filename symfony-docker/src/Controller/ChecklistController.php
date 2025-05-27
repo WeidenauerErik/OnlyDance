@@ -69,7 +69,7 @@ class ChecklistController extends AbstractController
         $user = $this->getUser();
 
         $data = json_decode($request->getContent(), true);
-        if (!isset($data['checklist_id'])) {
+        if (!isset($data['checklist_id'],$data['name'])) {
             return new JsonResponse(['error' => 'Missing required fields'], 400);
         }
 
@@ -77,7 +77,7 @@ class ChecklistController extends AbstractController
 
         $newChecklist = new Checklist();
 
-        $newChecklist->setName($checklist->getName());
+        $newChecklist->setName($data['name']);
         $newChecklist->setUserId($user);
 
         foreach ($checklist->getStepsequences() as $stepsequence) {
