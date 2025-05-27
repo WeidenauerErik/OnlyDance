@@ -7,6 +7,9 @@ import goldIcon from '@/assets/icons/Gold.png';
 import silberIcon from '@/assets/icons/Silber.png';
 import bronzeIcon from '@/assets/icons/Bronze.png';
 
+import unfilledHearthWhiteIcon from '@/assets/icons/unfilledHearthWhiteIcon.svg';
+import filledHearthWhiteIcon from '@/assets/icons/filledHearthWhiteIcon.svg';
+
 const url = import.meta.env.VITE_ServerIP + "/dance/dances";
 const dances = ref<DanceTypes[]>([]);
 const stepsequences = ref<[]>([]);
@@ -174,6 +177,7 @@ const resetFilters = () => {
             class="dance-card"
             @click="openDanceView(stepsequence.id)"
         >
+          <img :src="filledHearthWhiteIcon" alt="Herz Emoji">
           <h3 class="dance-title">{{ stepsequence.name }}</h3>
           <div class="difficulty-indicator">
             <span
@@ -192,7 +196,6 @@ const resetFilters = () => {
 
       <!-- Stepsequences filtered -->
       <template v-else>
-        <div v-if="filteredStepsequences.length === 0">Es gibt keine Tanzschritte mit diesem Abzeichen.</div>
         <div
             v-if="filterStepsequences.length !== 0"
             v-for="stepsequence in filteredStepsequences"
@@ -200,6 +203,7 @@ const resetFilters = () => {
             class="dance-card"
             @click="openDanceView(stepsequence.id)"
         >
+          <img :src="unfilledHearthWhiteIcon" alt="Herz Emoji">
           <h3 class="dance-title">{{ stepsequence.name }}</h3>
           <div class="difficulty-indicator">
             <span
