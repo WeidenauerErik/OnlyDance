@@ -11,9 +11,13 @@ const isGlobal = ref(false);
 const searchQuery = ref("");
 
 // Daten laden (initial "meine Checklisten")
-onMounted(() => {
+onMounted( () => {
+  auth.checkAuth();
   if (auth.isAuthenticated) {
     url.value = import.meta.env.VITE_ServerIP + `/checklist/user/get/`;
+  }
+  else {
+    router.push("/login");
   }
 
   fetch(url.value, {
@@ -49,6 +53,8 @@ watch(isGlobal, () => {
         }
         checklists.value = response;
       });
+
+
 });
 
 // Filterlogik
@@ -99,7 +105,7 @@ function addChecklist() {
             <img :src="searchIcon" alt="Suchen">
           </button>
         </div>
-        <button @click="addChecklist" class="main-button">+</button>
+        <button v-if="!isGlobal" @click="addChecklist" class="main-button">+</button>
       </div>
     </div>
 
