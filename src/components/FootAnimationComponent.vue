@@ -177,6 +177,9 @@ onUnmounted(() => {
     <div class="controlsContainerElement">
 
       <h1 id="infoTextDisplay" v-if="!props.isInEditMode"> {{ props.danceName }}</h1>
+      <div v-else>
+        <button @click="$emit('removeStep')" class="main-button" title="Lösche den jetztigen Tanzschritt">Tanzschritt entfernen</button>
+      </div>
 
     </div>
 
@@ -214,13 +217,8 @@ onUnmounted(() => {
 
     </div>
 
-    <div class="controlsContainerElement" id="controlsSettingsContainer">
-
-      <!--<img :src="settingsIcon" alt="Einstellungen" id="settingsIcon">-->
-      <div id="stepControlerContainer" v-if="props.isInEditMode">
-        <button @click="$emit('addStep')" class="stepControler" title="Füge einen Tanzschritt hinzu">+</button>
-        <button @click="$emit('removeStep')" class="stepControler" title="Lösche den jetztigen Tanzschritt">-</button>
-      </div>
+    <div>
+        <button @click="$emit('addStep')" class="main-button" title="Füge einen Tanzschritt hinzu" v-if="props.isInEditMode">Tanzschritt hinzufügen</button>
     </div>
   </div>
 </template>
@@ -233,7 +231,23 @@ $color-white: #FFFFFF;
 $color-gray-light: #F5F5F5;
 $color-gray: #E0E0E0;
 $color-text-dark: #333333;
+.main-button {
+  margin-left: 20px;
 
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  background-color: $colorVioletLight;
+  color: $color-white;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: $colorPurpleLight;
+    transform: translateY(-1px);
+  }
+}
 #morphDiv {
   width: 100%;
   height: 80vh;
@@ -244,24 +258,6 @@ $color-text-dark: #333333;
     justify-content: space-between;
     width: 100%;
     margin-top: 1vh;
-
-    .main-button {
-      margin-left: 20px;
-      margin-bottom: 2rem;
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 0.5rem;
-      background-color: $colorVioletLight;
-      color: $color-white;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-
-      &:hover {
-        background-color: $colorPurpleLight;
-        transform: translateY(-1px);
-      }
-    }
   }
 
   #manLeftFoot,
@@ -385,30 +381,6 @@ $color-text-dark: #333333;
 
   #nextStepsequence {
     text-decoration: none;
-  }
-}
-
-#stepControlerContainer {
-  display: flex;
-  flex-direction: column;
-  align-items: start;
-  justify-content: space-between;
-
-  .stepControler {
-    cursor: pointer;
-    border: none;
-    border-radius: 50%;
-    width: 6vh;
-    height: 6vh;
-    background-color: $colorPurpleLight;
-
-    display: flex;
-    justify-content: center;
-    align-items: center;
-
-    &:hover {
-      background-color: $colorVioletLight;
-    }
   }
 }
 </style>
