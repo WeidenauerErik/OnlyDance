@@ -103,6 +103,17 @@ onUpdated(async () => {
 onUnmounted(() => {
   window.removeEventListener('resize', resize);
 });
+
+
+
+
+
+
+
+
+
+
+
 </script>
 
 <template>
@@ -219,6 +230,7 @@ onUnmounted(() => {
 
     <div>
         <button @click="$emit('addStep')" class="main-button" title="Füge einen Tanzschritt hinzu" v-if="props.isInEditMode">Tanzschritt hinzufügen</button>
+        <button class="main-button" title="Füge einen Tanzschritt hinzu" v-if="!props.isInEditMode">Tanzschritt zu Checkliste hinzufügen</button>
     </div>
   </div>
 </template>

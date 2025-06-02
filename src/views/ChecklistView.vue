@@ -16,33 +16,36 @@ const auth = useAuthStore();
 console.log(auth.token)
 const checklist = ref({});
 const user = ref({});
-const isOwner = ref({});
+const isOwner = ref(false);
+
 fetch(url, {
-  headers: {
-    "Authorization": `Bearer ${auth.token}`,
-  }
+
 })
     .then(response => response.json())
     .then(response => checklist.value = response).then(() => {
-  fetch(url2, {
-    headers: {
-      "Authorization": `Bearer ${auth.token}`,
-    }
-  })
-      .then(response => response.json())
-      .then(response => user.value = response).then(
-      () => {
+      if(auth.isAuthenticated) {
+        fetch(url2, {
+          headers: {
+            "Authorization": `Bearer ${auth.token}`,
+          }
+        })
+            .then(response => response.json())
+            .then(response => user.value = response).then(
+            () => {
 
-        if (user.value.user === checklist.value.user_id.email) {
-          isOwner.value = true;
-          console.log("he is the owner")
-        } else {
-          isOwner.value = false;
-          console.log("he is not the owner")
+              if (user.value.user === checklist.value.user_id.email) {
+                isOwner.value = true;
+                console.log("he is the owner")
+              } else {
+                isOwner.value = false;
+                console.log("he is not the owner")
 
-        }
+              }
+            }
+        );
+      }else {
+        isOwner.value = false;
       }
-  );
 })
 
 const isCopying = ref(false);
@@ -122,6 +125,132 @@ const cancelCopy = () => {
 const backbtn = () => {
   router.push("/checklists");
 }
+const addStepsToChecklist = async () => {
+  try {
+    // Alle Stepsequences vom Server holen
+    const response = await fetch(import.meta.env.VITE_ServerIP + '/stepsequence/get', {
+      headers: {
+        "Authorization": `Bearer ${auth.token}`,
+      }
+    });
+    if (!response.ok) throw new Error("Fehler beim Laden der Figuren");
+    const allSequences = await response.json();
+
+    // IDs der bereits in der Checkliste enthaltenen Stepsequences
+    const existingIds = new Set((checklist.value.stepsequences || []).map((s: any) => s.id));
+
+    // Herausfiltern der neuen, noch nicht verwendeten Stepsequences
+    const availableSequences = allSequences.filter((seq: any) => !existingIds.has(seq.id));
+
+    if (availableSequences.length === 0) {
+      await Swal.fire("Hinweis", "Alle verfügbaren Figuren sind bereits in dieser Checkliste enthalten.", "info");
+      return;
+    }
+
+    // Custom Scrollbare HTML Liste
+    const formHtml = `
+      <div style="max-height:300px; overflow-y:auto; text-align:left;">
+        ${availableSequences.map(seq => `
+          <div style="margin-bottom:8px;">
+            <input type="checkbox" id="seq-${seq.id}" value="${seq.id}" />
+            <label for="seq-${seq.id}" style="margin-left: 6px;">${seq.name}</label>
+          </div>
+        `).join('')}
+      </div>
+    `;
+
+    const { isConfirmed } = await Swal.fire({
+      title: 'Figuren hinzufügen',
+      html: `
+        <form id="addStepsForm">${formHtml}</form>
+      `,
+      width: '40em',
+      showCancelButton: true,
+      confirmButtonText: 'Hinzufügen',
+      cancelButtonText: 'Abbrechen',
+      focusConfirm: false,
+      preConfirm: () => {
+        const checkboxes = document.querySelectorAll('#addStepsForm input[type="checkbox"]:checked');
+        const selectedIds = Array.from(checkboxes).map(cb => Number((cb as HTMLInputElement).value));
+        if (selectedIds.length === 0) {
+          Swal.showValidationMessage('Bitte wähle mindestens eine Figur aus');
+        }
+        return selectedIds;
+      }
+    });
+
+    if (isConfirmed) {
+      const selectedCheckboxes = document.querySelectorAll('#addStepsForm input[type="checkbox"]:checked');
+      const stepsequence_ids = Array.from(selectedCheckboxes).map(cb => Number((cb as HTMLInputElement).value));
+
+      const res = await fetch(import.meta.env.VITE_ServerIP + '/checklist/add-steps', {
+        method: 'POST',
+        headers: {
+          "Authorization": `Bearer ${auth.token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          checklist_id: props.id,
+          stepsequence_ids
+        })
+      });
+
+      if (!res.ok) throw new Error('Fehler beim Hinzufügen');
+
+      await Swal.fire('Erfolg', 'Die Figuren wurden hinzugefügt.', 'success');
+
+      // Reload checklist
+      const updated = await fetch(url);
+      checklist.value = await updated.json();
+    }
+
+  } catch (error) {
+    console.error(error);
+    Swal.fire("Fehler", "Es ist ein Fehler aufgetreten.", "error");
+  }
+};
+
+async function removeStepsequence(stepsequence_id: number) {
+  const result = await Swal.fire({
+    title: 'Bist du sicher?',
+    text: 'Möchtest du diese Figur wirklich aus der Checkliste entfernen?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Ja, entfernen',
+    cancelButtonText: 'Abbrechen',
+  });
+
+  if (result.isConfirmed) {
+    try {
+      const response = await fetch(import.meta.env.VITE_ServerIP + '/checklist/remove/stepsequence', {
+        method: 'POST',
+        headers: {
+          "Authorization": `Bearer ${auth.token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          checklist_id: props.id,
+          stepsequence_id: stepsequence_id
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Fehler beim Entfernen der Figur');
+      }
+
+      // Checkliste aktualisieren
+      const updated = await fetch(url);
+      checklist.value = await updated.json();
+
+      await Swal.fire('Entfernt', 'Die Figur wurde entfernt.', 'success');
+    } catch (error) {
+      console.error(error);
+      await Swal.fire('Fehler', 'Beim Entfernen der Figur ist ein Fehler aufgetreten.', 'error');
+    }
+  }
+}
+
+
 </script>
 
 <template>
@@ -129,7 +258,7 @@ const backbtn = () => {
   <div class="buttons" >
   <button @click="backbtn" class="main-button">Zurück zu den Checklisten</button>
     <button
-      v-if="!isOwner"
+      v-if="!isOwner&&auth.isAuthenticated"
       class="main-button"
       @click="copyCheckList"
       :disabled="isCopying"
@@ -145,9 +274,12 @@ const backbtn = () => {
       <div class="innerChecklistContainer">
         <img class="image-icons" @click="router.push('/danceview/'+stepsequence.id)" :src="playIcon"
              alt="AbspielKnopf: leitet einen zu der Tanzanimation weiter">
-        <img class="image-icons" :src="filledFavoriteIcon" alt="Herz Emoji zum Favorisieren">
+        <img class="image-icons" v-if="isOwner" :src="filledFavoriteIcon" @click="removeStepsequence(stepsequence.id)" alt="Herz Emoji zum Favorisieren">
       </div>
     </div>
+    <button class="main-button" v-if="isOwner">Figuren Hinzufügen </button>
+
+
 
   </div>
 </template>

@@ -16,7 +16,7 @@
           </div>
         </div>
 
-        <button :disabled="isSubmitting" class="submit-button">
+        <button :disabled="isSubmitting||v$.$invalid"  class="submit-button">
           {{ isSubmitting ? 'Wird erstellt...' : 'Checkliste erstellen' }}
         </button>
       </form>
@@ -29,7 +29,7 @@ import {ref, onMounted, reactive, computed} from "vue";
 import Swal from "sweetalert2";
 import { useAuthStore } from "@/stores/auth";
 import router from "@/router";
-import {alpha, maxLength,required} from "@vuelidate/validators";
+import {alpha, alphaNum, maxLength, required} from "@vuelidate/validators";
 import {useVuelidate} from "@vuelidate/core";
 
 
@@ -38,7 +38,7 @@ const state = reactive({
 })
 
 const rules = {
-  name: {required,alpha,maxLength: maxLength(20)},
+  name: {required,alphaNum,maxLength: maxLength(20)},
 }
 
 const v$ = useVuelidate(rules, state);
@@ -187,5 +187,10 @@ const handleSubmit = async () => {
       cursor: not-allowed;
     }
   }
+  .error-text{
+    color: $colorVioletLight;
+    font-size: 0.75rem;
+  }
 }
+
 </style>

@@ -102,7 +102,6 @@ const backToEndBtn = () => {
 </script>
 
 <template>
-
 <FootAnimationComponent
     :loaderIsVisible='loaderIsVisible'
     :danceStepCounter='danceStepCounter'
@@ -117,6 +116,9 @@ const backToEndBtn = () => {
     @nextBtn="nextBtn"
     @backToEndBtn="backToEndBtn"/>
 
+
+
 </template>
+
 
 

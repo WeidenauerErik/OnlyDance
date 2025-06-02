@@ -141,4 +141,8 @@ async function handleLogin() {
   text-decoration: underline;
   font-size: 0.9rem;
 }
+.error-text{
+  color: $colorVioletLight;
+  font-size: 0.75rem;
+}
 </style>

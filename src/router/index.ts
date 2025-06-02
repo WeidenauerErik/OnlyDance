@@ -11,7 +11,7 @@ import LoginView from '@/views/LoginView.vue';
 import EnterDanceView from "../views/EnterDanceView.vue"
 import ChecklistSelectionView from "@/views/ChecklistSelectionView.vue";
 import {useAuthStore} from "@/stores/auth.ts";
-import AddChecklistVue from "@/views/AddChecklistVue.vue";
+import AddChecklistView from "@/views/AddChecklistView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -73,7 +73,7 @@ const router = createRouter({
     {
       path: '/checklist/new',
       name: 'CreateChecklist',
-      component: AddChecklistVue,
+      component: AddChecklistView,
       meta: {requiresAuth: true}
     },
   ],
