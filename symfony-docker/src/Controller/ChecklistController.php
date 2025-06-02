@@ -121,9 +121,46 @@ class ChecklistController extends AbstractController
         $entityManager->flush();
 
 
-        return new JsonResponse(["status" => "successfully created checklist"]);
+        return new JsonResponse(["status" => "successfully added stepsequence to checklist"]);
     }
+    #[IsGranted('ROLE_USER')]
+    #[Route("/checklist/add/stepsequences", name: 'app_checklist_add_multiple', methods: ['POST'])]
+    public function addMultiple(Request $request, ChecklistRepository $checklistRepository, EntityManagerInterface $entityManager, StepsequenceRepository $stepsequenceRepository): JsonResponse
+    {
 
+
+        $this->denyAccessUnlessGranted('IS_AUTHENTICATED_FULLY');
+        $user = $this->getUser();
+
+        $data = json_decode($request->getContent(), true);
+        if (!isset($data['checklist_id'], $data['stepsequences'])) {
+            return new JsonResponse(['error' => 'Missing required fields'], 400);
+        }
+
+
+        $checklist = $checklistRepository->find($data['checklist_id']);
+        if (!$checklist) {
+            return new JsonResponse(['error' => 'Checklist not found'], 404);
+        }
+        if($checklist->getUserId()->getEmail() !== $user->getUserIdentifier()){
+            return new JsonResponse(['error' => 'You cant add a stepsequence to a checklist that is not yours'], 403);
+        }
+
+        foreach ($data["stepsequences"] as $stepsequenceID) {
+            $stepsequence = $stepsequenceRepository->find($stepsequenceID);
+            if ($stepsequence) {
+                $checklist->addStepsequence($stepsequence);
+            } else {
+                return new JsonResponse(["error" => "a stepsequence ID cant be found in the database"],404);
+            }
+
+        }
+
+        $entityManager->flush();
+
+
+        return new JsonResponse(["status" => "successfully added stepsequences to checklist"]);
+    }
 
     // Getters
     #[IsGranted('ROLE_USER')]
@@ -183,7 +220,7 @@ class ChecklistController extends AbstractController
 
     // deleters
 
-    #[Route("/checklist/delete/stepsequence", name: 'app_checklist_delete_stepsequence', methods: ['POST'])]
+    #[Route("/checklist/remove/stepsequence", name: 'app_checklist_remove_stepsequence', methods: ['POST'])]
     public function deleteStepsequence(Request $request, EntityManagerInterface $entityManager, ChecklistRepository $checklistRepository, StepsequenceRepository $stepsequenceRepository): JsonResponse
     {
 
