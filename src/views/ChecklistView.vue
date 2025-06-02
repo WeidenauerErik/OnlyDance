@@ -62,8 +62,12 @@ const copyCheckList = async () => {
     confirmButtonText: 'Kopieren',
     cancelButtonText: 'Abbrechen',
     inputValidator: (value) => {
-      if (!value.trim()) {
+      const trimmed = value.trim();
+      if (!trimmed) {
         return 'Bitte gib einen gültigen Namen ein';
+      }
+      if (!/^[a-zA-Z0-9 ]+$/.test(trimmed)) {
+        return 'Nur Buchstaben und Zahlen erlaubt (keine Sonderzeichen)';
       }
     }
   });
@@ -114,6 +118,7 @@ const copyCheckList = async () => {
     isCopying.value = false;
   }
 };
+
 
 
 const cancelCopy = () => {
