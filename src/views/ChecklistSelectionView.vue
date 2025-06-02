@@ -57,6 +57,11 @@ const filteredChecklists = computed(() => {
       checklist.name.toLowerCase().includes(searchQuery.value.toLowerCase())
   );
 });
+
+
+function addChecklist() {
+  router.push("/checklist/new");
+}
 </script>
 
 <template>
@@ -82,18 +87,24 @@ const filteredChecklists = computed(() => {
     </div>
 
     <div class="search-section">
-      <div class="search-container">
-        <input
-            type="text"
-            v-model="searchQuery"
-            class="search-input"
-            placeholder="Suchen Sie nach Checklisten ..."
-        >
-        <button class="search-button">
-          <img :src="searchIcon" alt="Suchen">
-        </button>
+      <div class="search-container-with-button">
+        <div class="search-container">
+          <input
+              type="text"
+              v-model="searchQuery"
+              class="search-input"
+              placeholder="Suchen Sie nach Checklisten ..."
+          >
+          <button class="search-button">
+            <img :src="searchIcon" alt="Suchen">
+          </button>
+        </div>
+        <button @click="addChecklist" class="main-button">+</button>
       </div>
     </div>
+
+
+
 
 
     <template v-if="filteredChecklists.length > 0">
@@ -327,5 +338,47 @@ const filteredChecklists = computed(() => {
   padding: 2rem;
   width: 100%;
 }
+.main-button {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background-color: $colorVioletLight;
+  color: $colorWhite;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 2px solid $colorVioletDark;
+
+
+
+  &:hover {
+    background-color: $colorPurpleLight;
+    transform: translateY(-1px);
+  }
+}
+.button-wrapper {
+  display: flex;
+  justify-content: flex-end;
+}
+.search-container-with-button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.search-container {
+  position: relative;
+  flex-grow: 1;
+}
+
+
+
 
 </style>

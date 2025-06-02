@@ -2,6 +2,15 @@
 import {RouterView} from 'vue-router'
 import NavBarComponent from './components/NavBarComponent.vue';
 import FooterComponent from './components/FooterComponent.vue';
+import {useAuthStore} from "@/stores/auth.ts";
+import {onMounted} from "vue";
+const authStore = useAuthStore();
+
+onMounted(() => {
+  authStore.checkAuth();
+})
+
+
 </script>
 
 <template>

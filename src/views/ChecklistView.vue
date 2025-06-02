@@ -4,6 +4,8 @@ import filledFavoriteIcon from '@/assets/icons/filledHearthWhiteIcon.svg';
 import {useAuthStore} from "@/stores/auth.ts";
 import {type Ref, ref} from "vue";
 import router from "@/router";
+import Swal from 'sweetalert2';
+
 
 const props = defineProps({
   id: String //id of the checklist displayed
@@ -47,54 +49,69 @@ const isCopying = ref(false);
 const copyError :  Ref<null, null> = ref(null);
 const newChecklistName = ref('');
 const showNameDialog = ref(false);
-const copyCheckList = () => {
-  showNameDialog.value = true;
-};
+const copyCheckList = async () => {
+  const { value: checklistName } = await Swal.fire({
+    title: 'Checkliste kopieren',
+    input: 'text',
+    inputLabel: 'Neuer Name der Checkliste',
+    inputPlaceholder: 'Gib einen Namen ein',
+    showCancelButton: true,
+    confirmButtonText: 'Kopieren',
+    cancelButtonText: 'Abbrechen',
+    inputValidator: (value) => {
+      if (!value.trim()) {
+        return 'Bitte gib einen gültigen Namen ein';
+      }
+    }
+  });
 
-const confirmCopy = () => {
-  if (!newChecklistName.value.trim()) {
-    copyError.value = 'Please enter a name for the copied checklist';
-    return;
+  if (!checklistName) {
+    return; // Abgebrochen
   }
 
   isCopying.value = true;
-  copyError.value = null;
 
-  const url = import.meta.env.VITE_ServerIP + '/checklist/clone';
+  const urlClone = import.meta.env.VITE_ServerIP + '/checklist/clone';
 
-  fetch(url, {
-    method: 'POST',
-    headers: {
-      "Authorization": `Bearer ${auth.token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      checklist_id: props.id,
-      name: newChecklistName.value // Send the new name to the backend
-    })
-  })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Failed to copy checklist');
-        }
-        return response.json();
+  try {
+    const response = await fetch(urlClone, {
+      method: 'POST',
+      headers: {
+        "Authorization": `Bearer ${auth.token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        checklist_id: props.id,
+        name: checklistName
       })
-      .then(data => {
-        console.log('Checklist copied successfully:', data);
-        // Reset and close dialog
-        newChecklistName.value = '';
-        showNameDialog.value = false;
-        // Redirect to checklists page after successful copy
-        router.push('/checklists');
-      })
-      .catch(error => {
-        console.error('Error copying checklist:', error);
-        copyError.value = error.message;
-      })
-      .finally(() => {
-        isCopying.value = false;
-      });
+    });
+
+    if (!response.ok) {
+      throw new Error('Fehler beim Kopieren der Checkliste');
+    }
+
+    const data = await response.json();
+    console.log('Checkliste erfolgreich kopiert:', data);
+
+    await Swal.fire({
+      icon: 'success',
+      title: 'Erfolg',
+      text: 'Die Checkliste wurde erfolgreich kopiert!',
+    });
+
+    router.push('/checklists');
+  } catch (error: any) {
+    console.error(error);
+    Swal.fire({
+      icon: 'error',
+      title: 'Fehler',
+      text: error.message || 'Unbekannter Fehler beim Kopieren',
+    });
+  } finally {
+    isCopying.value = false;
+  }
 };
+
 
 const cancelCopy = () => {
   showNameDialog.value = false;
@@ -117,7 +134,8 @@ const backbtn = () => {
       @click="copyCheckList"
       :disabled="isCopying"
   >
-    {{ isCopying ? 'Copying...' : 'Diese Checkliste Kopieren' }}
+      Diese Checkliste Kopieren
+
   </button>
   <p v-if="copyError" class="error-message">{{ copyError }}</p>
   </div>
