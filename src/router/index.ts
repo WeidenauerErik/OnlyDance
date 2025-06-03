@@ -62,7 +62,9 @@ const router = createRouter({
     {
       path: '/enterDance',
       name: 'enterDance',
-      component: EnterDanceView
+      component: EnterDanceView,
+      meta: {requiresAdmin: true}
+
     },
     {
       path: '/checklists',
@@ -82,7 +84,11 @@ router.beforeEach((to, from, next) => {
   const authStore = useAuthStore();
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next('/login');
-  } else {
+  }
+  else if(to.meta.requiresAdmin && !authStore.isAdmin) {
+    next('/login');
+
+  }else {
     next();
   }
 });

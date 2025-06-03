@@ -8,6 +8,12 @@ import pauseIcon from "@/assets/icons/pauseIcon.svg";
 
 import Swal from 'sweetalert2';
 import axios from "axios";
+import {useAuthStore} from "@/stores/auth.ts";
+const auth = useAuthStore();
+onMounted(async () =>{
+  await auth.checkAdmin();
+  console.log( auth.isAdmin);
+})
 
 const ServerUrl = import.meta.env.VITE_ServerIP;
 

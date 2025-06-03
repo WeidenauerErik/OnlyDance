@@ -93,6 +93,8 @@ watch(searchQuery, filterSearchResults);
         <div class="navbar-links desktop-only">
           <RouterLink to="/mainpage" class="nav-link">Hauptseite</RouterLink>
           <RouterLink to="/checklists" class="nav-link" v-if="auth.isAuthenticated">Checklisten</RouterLink>
+          <RouterLink v-if="auth.isAdmin" to="/enterdance" class="nav-link">Tanz Hinzufügen</RouterLink>
+
         </div>
 
         <!-- Search -->
@@ -133,7 +135,6 @@ watch(searchQuery, filterSearchResults);
     <!-- Mobile Menu -->
     <div v-if="!auth.isAuthenticated" v-show="showMenu" class="mobile-menu" id="menuDropdown">
       <RouterLink to="/mainpage" class="mobile-link" @click="showMenu = false">Hauptseite</RouterLink>
-      <RouterLink to="/events" class="mobile-link" @click="showMenu = false">Event Kalender</RouterLink>
       <div class="mobile-divider"></div>
       <RouterLink to="/login" class="mobile-link" @click="showMenu = false">Anmelden</RouterLink>
       <RouterLink to="/signup" class="mobile-link" @click="showMenu = false">Registrieren</RouterLink>
@@ -141,7 +142,8 @@ watch(searchQuery, filterSearchResults);
     <div v-if="auth.isAuthenticated" v-show="showMenu" class="mobile-menu" id="menuDropdown">
       <RouterLink to="/mainpage" class="mobile-link" @click="showMenu = false">Hauptseite</RouterLink>
       <RouterLink to="/checklists" class="mobile-link" @click="showMenu = false">Checklisten</RouterLink>
-      <RouterLink to="/events" class="mobile-link" @click="showMenu = false">Event Kalender</RouterLink>
+      <RouterLink v-if="auth.isAdmin" to="/enterdance" class="mobile-link" @click="showMenu = false">Tanz Hinzufügen</RouterLink>
+
       <div class="mobile-divider"></div>
       <button @click="auth.logout()" class="mobile-link">Ausloggen</button>
     </div>

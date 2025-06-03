@@ -57,6 +57,7 @@ async function handleLogin() {
       password: state.password.trim()
     })
     auth.login(response.data.token);
+
     Toast.fire({
       icon: "success",
       title: "Hervorragend du bist eingelogged!"
