@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import playIcon from '@/assets/icons/playIcon.svg';
-import filledFavoriteIcon from '@/assets/icons/filledHearthWhiteIcon.svg';
+import deleteIcon from '@/assets/icons/deleteIcon.svg';
 import {useAuthStore} from "@/stores/auth.ts";
 import {type Ref, ref} from "vue";
 import router from "@/router";
@@ -267,7 +267,7 @@ const handleSubmit = async () => {
       <div class="innerChecklistContainer">
         <img class="image-icons" @click="router.push('/danceview/'+stepsequence.id)" :src="playIcon"
              alt="AbspielKnopf: leitet einen zu der Tanzanimation weiter">
-        <img class="image-icons" v-if="isOwner" :src="filledFavoriteIcon" @click="removeStepsequence(stepsequence.id)" alt="Herz Emoji zum Favorisieren">
+        <img class="image-icons" v-if="isOwner" :src="deleteIcon" @click="removeStepsequence(stepsequence.id)" alt="Entfern Button">
       </div>
     </div>
     <button class="main-button" @click="openAddSequencesModal" v-if="isOwner">Figuren Hinzufügen </button>
