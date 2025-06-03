@@ -80,8 +80,10 @@ const router = createRouter({
     },
   ],
 })
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore();
+  await authStore.checkAdmin();
+  authStore.checkAuth();
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next('/login');
   }
