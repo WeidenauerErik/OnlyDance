@@ -73,8 +73,9 @@ const handleSubmit = async () => {
   }else {
 
 
-    if (!name.value.trim() || selectedSequences.value.length === 0) {
-      Swal.fire("Ungültig", "Name und mindestens ein Stepsequence müssen angegeben werden.", "warning");
+    if (!state.name.trim() || selectedSequences.value.length === 0) {
+
+        Swal.fire("Ungültig", "Name und mindestens ein Stepsequence müssen angegeben werden.", "warning");
       return;
     }
 
@@ -88,7 +89,7 @@ const handleSubmit = async () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: name.value.trim(),
+          name: state.name.trim(),
           stepsequences: selectedSequences.value
         })
       });

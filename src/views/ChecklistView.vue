@@ -12,6 +12,7 @@ const props = defineProps({
 })
 const url = import.meta.env.VITE_ServerIP + `/checklist/get/${props.id}`;
 const url2 = import.meta.env.VITE_ServerIP + `/api/check`;
+const urlStepsequences = import.meta.env.VITE_ServerIP + `/stepsequence/get` ;
 const auth = useAuthStore();
 console.log(auth.token)
 const checklist = ref({});
@@ -130,90 +131,28 @@ const cancelCopy = () => {
 const backbtn = () => {
   router.push("/checklists");
 }
+
+const availableSequences = ref([]);
+
 const addStepsToChecklist = async () => {
   try {
-    // Alle Stepsequences vom Server holen
-    const response = await fetch(import.meta.env.VITE_ServerIP + '/stepsequence/get', {
-      headers: {
-        "Authorization": `Bearer ${auth.token}`,
-      }
-    });
+    const response = await fetch(urlStepsequences);
     if (!response.ok) throw new Error("Fehler beim Laden der Figuren");
     const allSequences = await response.json();
 
-    // IDs der bereits in der Checkliste enthaltenen Stepsequences
     const existingIds = new Set((checklist.value.stepsequences || []).map((s: any) => s.id));
 
-    // Herausfiltern der neuen, noch nicht verwendeten Stepsequences
-    const availableSequences = allSequences.filter((seq: any) => !existingIds.has(seq.id));
+     availableSequences.value = allSequences.filter((seq: any) => !existingIds.has(seq.id));
 
-    if (availableSequences.length === 0) {
-      await Swal.fire("Hinweis", "Alle verfügbaren Figuren sind bereits in dieser Checkliste enthalten.", "info");
-      return;
-    }
+    console.log(existingIds);
+    console.log(availableSequences.value);
 
-    // Custom Scrollbare HTML Liste
-    const formHtml = `
-      <div style="max-height:300px; overflow-y:auto; text-align:left;">
-        ${availableSequences.map(seq => `
-          <div style="margin-bottom:8px;">
-            <input type="checkbox" id="seq-${seq.id}" value="${seq.id}" />
-            <label for="seq-${seq.id}" style="margin-left: 6px;">${seq.name}</label>
-          </div>
-        `).join('')}
-      </div>
-    `;
-
-    const { isConfirmed } = await Swal.fire({
-      title: 'Figuren hinzufügen',
-      html: `
-        <form id="addStepsForm">${formHtml}</form>
-      `,
-      width: '40em',
-      showCancelButton: true,
-      confirmButtonText: 'Hinzufügen',
-      cancelButtonText: 'Abbrechen',
-      focusConfirm: false,
-      preConfirm: () => {
-        const checkboxes = document.querySelectorAll('#addStepsForm input[type="checkbox"]:checked');
-        const selectedIds = Array.from(checkboxes).map(cb => Number((cb as HTMLInputElement).value));
-        if (selectedIds.length === 0) {
-          Swal.showValidationMessage('Bitte wähle mindestens eine Figur aus');
-        }
-        return selectedIds;
-      }
-    });
-
-    if (isConfirmed) {
-      const selectedCheckboxes = document.querySelectorAll('#addStepsForm input[type="checkbox"]:checked');
-      const stepsequence_ids = Array.from(selectedCheckboxes).map(cb => Number((cb as HTMLInputElement).value));
-
-      const res = await fetch(import.meta.env.VITE_ServerIP + '/checklist/add-steps', {
-        method: 'POST',
-        headers: {
-          "Authorization": `Bearer ${auth.token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          checklist_id: props.id,
-          stepsequence_ids
-        })
-      });
-
-      if (!res.ok) throw new Error('Fehler beim Hinzufügen');
-
-      await Swal.fire('Erfolg', 'Die Figuren wurden hinzugefügt.', 'success');
-
-      // Reload checklist
-      const updated = await fetch(url);
-      checklist.value = await updated.json();
-    }
-
-  } catch (error) {
-    console.error(error);
-    Swal.fire("Fehler", "Es ist ein Fehler aufgetreten.", "error");
   }
-};
+  catch (error) {
+    console.error(error);
+  }
+}
+
 
 async function removeStepsequence(stepsequence_id: number) {
   const result = await Swal.fire({
@@ -255,6 +194,55 @@ async function removeStepsequence(stepsequence_id: number) {
   }
 }
 
+const showAddSequencesModal = ref(false);
+const selectedSequences = ref<number[]>([]);
+const isSubmitting = ref(false);
+
+const openAddSequencesModal = async () => {
+  await addStepsToChecklist(); // Lädt verfügbare Sequenzen
+  showAddSequencesModal.value = true;
+};
+
+const closeAddSequencesModal = () => {
+  showAddSequencesModal.value = false;
+  selectedSequences.value = [];
+};
+
+const handleSubmit = async () => {
+  if(selectedSequences.value.length === 0) {
+    await Swal.fire('Keine Figur ausgewählt', 'Bitte mindestens eine Figur auswählen', 'warning');
+    return;
+  }
+  isSubmitting.value = true;
+  try {
+    console.log(selectedSequences.value);
+    const response = await fetch(import.meta.env.VITE_ServerIP + '/checklist/add/stepsequences', {
+      method: 'POST',
+      headers: {
+        "Authorization": `Bearer ${auth.token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        checklist_id: props.id,
+        stepsequences: selectedSequences.value,
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error("Fehler beim Hinzufügen der Figuren");
+    }
+
+    checklist.value = await (await fetch(url)).json();
+    closeAddSequencesModal();
+    await Swal.fire('Erfolg', 'Figuren wurden hinzugefügt!', 'success');
+  } catch (error: any) {
+    console.error(error);
+    await Swal.fire('Fehler', error.message || 'Fehler beim Hinzufügen', 'error');
+  } finally {
+    isSubmitting.value = false;
+  }
+};
+
 
 </script>
 
@@ -282,11 +270,35 @@ async function removeStepsequence(stepsequence_id: number) {
         <img class="image-icons" v-if="isOwner" :src="filledFavoriteIcon" @click="removeStepsequence(stepsequence.id)" alt="Herz Emoji zum Favorisieren">
       </div>
     </div>
-    <button class="main-button" v-if="isOwner">Figuren Hinzufügen </button>
+    <button class="main-button" @click="openAddSequencesModal" v-if="isOwner">Figuren Hinzufügen </button>
 
 
 
   </div>
+
+  <div v-if="showAddSequencesModal" class="modal-overlay">
+    <div class="modal-content">
+      <h1 class="title">Figuren hinzufügen</h1>
+
+      <form @submit.prevent="handleSubmit" class="checklist-form">
+        <label for="sequences">Figuren auswählen:</label>
+        <div class="sequence-list">
+          <div v-for="sequence in availableSequences" :key="sequence.id" class="sequence-item">
+            <input type="checkbox" :id="sequence.id" :value="sequence.id" v-model="selectedSequences" />
+            <label :for="sequence.id">{{ sequence.name }}</label>
+          </div>
+        </div>
+
+        <div class="modal-buttons">
+          <button type="submit" :disabled="isSubmitting" class="main-button">
+            {{ isSubmitting ? 'Wird hinzugefügt...' : 'Hinzufügen' }}
+          </button>
+          <button type="button" class="cancel-button" @click="closeAddSequencesModal">Abbrechen</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
 </template>
 
 <style scoped lang="scss">
@@ -358,4 +370,133 @@ async function removeStepsequence(stepsequence_id: number) {
   color: red;
   margin-top: 10px;
 }
+.add-checklist-page {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(to bottom right, #f3e8ff, #fce7f3, #ffffff);
+}
+
+.form-section {
+  width: 100%;
+  max-width: 500px;
+  background-color: $colorWhite;
+  border-radius: 1.5rem;
+  padding: 2rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  font-size: 2rem;
+  color: $colorPurpleLight;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.checklist-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+
+  input[type="text"] {
+    padding: 0.75rem;
+    border-radius: 9999px;
+    border: 1px solid #d1d5db;
+    font-size: 1rem;
+    outline: none;
+
+    &:focus {
+      border-color: $colorPurpleLight;
+    }
+  }
+
+  .sequence-list {
+    display: flex;
+    flex-direction: column;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 0.75rem;
+    background-color: #fafafa;
+  }
+
+  .sequence-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .submit-button {
+    background-color: $colorVioletLight;
+    color: white;
+    font-weight: bold;
+    padding: 0.75rem;
+    border-radius: 9999px;
+    border: none;
+    cursor: pointer;
+
+    &:hover {
+      background-color: $colorPurpleLight;
+    }
+
+    &:disabled {
+      background-color: grey;
+      cursor: not-allowed;
+    }
+  }
+  .error-text{
+    color: $colorVioletLight;
+    font-size: 0.75rem;
+  }
+}
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.cancel-button {
+  background-color: #ddd;
+  color: #333;
+  margin-right: 20px;
+  margin-top: 20px;
+  margin-left: 20px;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #bbb;
+    transform: translateY(-1px);
+  }
+}
+
 </style>

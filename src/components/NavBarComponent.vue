@@ -93,7 +93,7 @@ watch(searchQuery, filterSearchResults);
         <div class="navbar-links desktop-only">
           <RouterLink to="/mainpage" class="nav-link">Hauptseite</RouterLink>
           <RouterLink to="/checklists" class="nav-link" v-if="auth.isAuthenticated">Checklisten</RouterLink>
-          <RouterLink v-if="auth.isAdmin" to="/enterdance" class="nav-link">Tanz Hinzufügen</RouterLink>
+          <RouterLink v-if="auth.isAdmin" to="/enterdance" class="nav-link">Figur Hinzufügen</RouterLink>
 
         </div>
 
