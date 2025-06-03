@@ -14,6 +14,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\SerializerInterface;
 
 class StepsequenceStepController extends AbstractController
@@ -25,6 +26,7 @@ class StepsequenceStepController extends AbstractController
     {
         $this->params = $params;
     }
+    #[IsGranted('ROLE_ADMIN')]
     #[Route('/stepsequence/add/file', name: 'app_add_file', methods: ['POST'])]
     public function newFile(Request $request,EntityManagerInterface $entityManager) :JsonResponse
     {
@@ -97,6 +99,8 @@ class StepsequenceStepController extends AbstractController
         $entityManager->flush();
         return new JsonResponse(['status' => 'Dance and steps saved and successfully created file'], 201);
     }
+
+    #[IsGranted('ROLE_ADMIN')]
     #[Route('/stepsequence/add', name: 'app_stepsequence_new', methods: ['POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): JsonResponse
     {
