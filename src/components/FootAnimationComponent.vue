@@ -230,7 +230,7 @@ onUnmounted(() => {
 
     <div>
         <button @click="$emit('addStep')" class="main-button" title="Füge einen Tanzschritt hinzu" v-if="props.isInEditMode">Tanzschritt hinzufügen</button>
-        <button class="main-button" title="Füge einen Tanzschritt hinzu" v-if="!props.isInEditMode">Tanzschritt zu Checkliste hinzufügen</button>
+        <button @click="$emit('popUpBtn')" class="main-button" title="Füge einen Tanzschritt zu einer Checkliste hinzu" v-if="!props.isInEditMode">Tanzschritt zu Checkliste hinzufügen</button>
     </div>
   </div>
 </template>

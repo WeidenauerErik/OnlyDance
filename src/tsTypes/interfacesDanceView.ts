@@ -50,4 +50,5 @@ export interface FootAnimationEmits {
     'removeStep': void;
     'backToMenu': void;
     'saveDance':void;
+    'popUpBtn': void;
 }

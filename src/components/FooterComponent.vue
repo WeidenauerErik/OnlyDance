@@ -55,7 +55,7 @@ import {RouterLink} from "vue-router";
   #footerUpperContainer {
     display: flex;
     flex-direction: row;
-    justify-content: space-around;
+    justify-content: center;
     align-items: center;
     height: 35vh;
 

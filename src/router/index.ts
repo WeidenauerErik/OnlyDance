@@ -88,7 +88,7 @@ router.beforeEach(async (to, from, next) => {
     next('/login');
   }
   else if(to.meta.requiresAdmin && !authStore.isAdmin) {
-    next('/login');
+    next('/mainpage');
 
   }else {
     next();
