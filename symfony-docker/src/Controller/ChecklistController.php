@@ -116,6 +116,9 @@ class ChecklistController extends AbstractController
         if($checklist->getUserId()->getEmail() !== $user->getUserIdentifier()){
             return new JsonResponse(['error' => 'You cant add a stepsequence to a checklist that is not yours'], 403);
         }
+        if($checklist->getStepsequences()->contains($stepsequence)){
+            return new JsonResponse(['error' => 'Stepsequence is already in checklist'], 400);
+        }
 
         $checklist->addStepsequence($stepsequence);
         $entityManager->flush();
