@@ -38,6 +38,7 @@ export interface FootAnimationProps {
     autoplayVariable: string;
     danceName: string;
     isInEditMode: boolean;
+    isLoggedIn: boolean;
 }
 
 export interface FootAnimationEmits {

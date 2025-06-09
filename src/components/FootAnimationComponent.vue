@@ -228,9 +228,9 @@ onUnmounted(() => {
 
     </div>
 
-    <div>
+    <div >
         <button @click="$emit('addStep')" class="main-button" title="Füge einen Tanzschritt hinzu" v-if="props.isInEditMode">Tanzschritt hinzufügen</button>
-        <button @click="$emit('popUpBtn')" class="main-button" title="Füge einen Tanzschritt zu einer Checkliste hinzu" v-if="!props.isInEditMode">Tanzschritt zu Checkliste hinzufügen</button>
+        <button v-else-if="props.isLoggedIn" @click="$emit('popUpBtn')" class="main-button" title="Füge einen Tanzschritt zu einer Checkliste hinzu" v-if="!props.isInEditMode">Tanzschritt zu Checkliste hinzufügen</button>
     </div>
   </div>
 </template>
@@ -254,6 +254,8 @@ $color-text-dark: #333333;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+
+  margin-bottom: 20px;
 
   &:hover {
     background-color: $colorPurpleLight;
@@ -341,14 +343,17 @@ $color-text-dark: #333333;
 }
 
 #controlsMainContainer {
-  height: 8vh;
   display: flex;
-  padding: 10px;
   justify-content: space-between;
   align-items: center;
-  margin: 0 2.5rem 0 2.5rem;
+  height: auto;
+  min-height: 8vh;
+  padding: 10px 2.5rem;
+  margin: 0;
 
   .controlsContainerElement {
+    display: flex;
+    align-items: center;
     min-width: 30%;
   }
 
@@ -393,6 +398,18 @@ $color-text-dark: #333333;
 
   #nextStepsequence {
     text-decoration: none;
+  }
+}
+
+@media (max-width: 768px) {
+  #controlsMainContainer {
+    flex-direction: column;
+    gap: 1rem;
+
+    .controlsContainerElement {
+      min-width: 100%;
+      justify-content: center;
+    }
   }
 }
 </style>

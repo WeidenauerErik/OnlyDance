@@ -329,7 +329,8 @@ const saveDance = async () => {
   } else {
     try {
       await axios.post(ServerUrl + '/stepsequence/add', output, {
-        headers: {'Content-Type': 'application/json'}
+        headers: {'Content-Type': 'application/json',
+        'Authorization' : `Bearer ${auth.token}`},
       });
       Swal.fire('Erfolgreich gespeichert!', '', 'success');
     } catch (error) {

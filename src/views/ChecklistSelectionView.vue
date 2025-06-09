@@ -358,6 +358,8 @@ function addChecklist() {
   justify-content: center;
   padding: 0;
   border: 2px solid $colorVioletDark;
+  margin-bottom: 20px;
+
 
 
 

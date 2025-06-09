@@ -3,7 +3,6 @@ import { createRouter, createWebHistory } from 'vue-router'
 import MainPageView from '../views/MainPageView.vue'
 import SignUpView from "../views/SignUpView.vue";
 import LandingPageView from "../views/LandingPageView.vue";
-import EventCalendarView from "../views/EventCalendarView.vue";
 import ChecklistView from "../views/ChecklistView.vue";
 import DanceView from '../views/DanceView.vue';
 import ImprintView from "../views/ImprintView.vue";
@@ -36,11 +35,7 @@ const router = createRouter({
       name: 'landingpage',
       component: LandingPageView
     },
-    {
-      path: '/events',
-      name: 'Eventcalendar',
-      component: EventCalendarView
-    },
+
     {
       path: '/checklist/:id',
       name: 'Checklist',

@@ -6,6 +6,7 @@ import router from "@/router";
 import goldIcon from '@/assets/icons/Gold.png';
 import silberIcon from '@/assets/icons/Silber.png';
 import bronzeIcon from '@/assets/icons/Bronze.png';
+import goldStarIcon from '@/assets/icons/GoldStar.svg';
 
 const url = import.meta.env.VITE_ServerIP + "/dance/dances";
 const dances = ref<DanceTypes[]>([]);
@@ -22,6 +23,7 @@ onMounted(() => {
       .then((data: DanceTypes[]) => {
         dances.value = data;
         nextTick();
+        dances.value.sort((a, b) => a.name.localeCompare(b.name));
       });
 });
 
@@ -101,10 +103,10 @@ const resetFilters = () => {
       <div class="search-section">
         <div class="search-container">
           <input v-if="isStepsequence"
-              type="text"
-              v-model="searchQuery"
-              class="search-input"
-              placeholder="Suchen Sie nach Figuren ..."
+                 type="text"
+                 v-model="searchQuery"
+                 class="search-input"
+                 placeholder="Suchen Sie nach Figuren ..."
           >
           <input v-else
                  type="text"
@@ -126,14 +128,17 @@ const resetFilters = () => {
       <!--Filters for the Stepsequences -->
       <div v-else id="filter-container">
         <div id="filter-buttons">
-          <button class="filter-button" :class="{ active: activeFilter === 3 }" @click="filter(3)">
-            <img :src="goldIcon" alt="Filterfunktion für Gold">
+          <button class="filter-button" :class="{ active: activeFilter === 1 }" @click="filter(1)">
+            <img :src="bronzeIcon" alt="Filterfunktion für Bronze">
           </button>
           <button class="filter-button" :class="{ active: activeFilter === 2 }" @click="filter(2)">
             <img :src="silberIcon" alt="Filterfunktion für Silber">
           </button>
-          <button class="filter-button" :class="{ active: activeFilter === 1 }" @click="filter(1)">
-            <img :src="bronzeIcon" alt="Filterfunktion für Bronze">
+          <button class="filter-button" :class="{ active: activeFilter === 3 }" @click="filter(3)">
+            <img :src="goldIcon" alt="Filterfunktion für Gold">
+          </button>
+          <button class="filter-button" :class="{ active: activeFilter === 1 }" @click="filter(4)">
+            <img :src="goldStarIcon" alt="Filterfunktion für Gold Star">
           </button>
         </div>
         <button @click="resetFilters" id="reset-filter">Filter zurücksetzen</button>
@@ -145,10 +150,10 @@ const resetFilters = () => {
       <!--Dances shown-->
       <template v-if="!isStepsequence">
         <div v-if="filteredDances.length !== 0"
-            v-for="dance in filteredDances"
-            :key="dance.id"
-            class="dance-card"
-            @click="getStepsequencesFromDance(dance.id)"
+             v-for="dance in filteredDances"
+             :key="dance.id"
+             class="dance-card"
+             @click="getStepsequencesFromDance(dance.id)"
         >
           <h3 class="dance-title">{{ dance.name }}</h3>
           <div class="difficulty-indicator">
@@ -186,6 +191,7 @@ const resetFilters = () => {
           <span v-if="stepsequence.badge.name === 'Bronze'"><img :src="bronzeIcon" class="badges-icons"></span>
           <span v-else-if="stepsequence.badge.name === 'Silber'"><img :src="silberIcon" class="badges-icons"></span>
           <span v-else-if="stepsequence.badge.name === 'Gold'"><img :src="goldIcon" class="badges-icons"></span>
+          <span v-else-if="stepsequence.badge.id === 4"><img :src="goldStarIcon" class="badges-icons"></span>
           <span v-else>{{ stepsequence.badge.name }}</span>
         </div>
       </template>
@@ -212,6 +218,7 @@ const resetFilters = () => {
           <span v-if="stepsequence.badge.name === 'Bronze'"><img :src="bronzeIcon" class="badges-icons"></span>
           <span v-else-if="stepsequence.badge.name === 'Silber'"><img :src="silberIcon" class="badges-icons"></span>
           <span v-else-if="stepsequence.badge.name === 'Gold'"><img :src="goldIcon" class="badges-icons"></span>
+          <span v-else-if="stepsequence.badge.id === 4"><img :src="goldStarIcon" class="badges-icons"></span>
           <span v-else>{{ stepsequence.badge.name }}</span>
         </div>
         <span v-else>
@@ -223,6 +230,8 @@ const resetFilters = () => {
 </template>
 
 <style scoped lang="scss">
+
+
 #reset-filter {
   margin-left: 20px;
 
@@ -244,7 +253,8 @@ const resetFilters = () => {
 
 .search-container {
   position: relative;
-  max-width: 600px;
+  min-width: 40vw;
+
   margin: 0 auto;
 }
 
@@ -252,6 +262,8 @@ const resetFilters = () => {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  align-items: center;
+  margin-bottom: 3vh;
 }
 
 .search-input {
@@ -296,6 +308,7 @@ const resetFilters = () => {
 
 .main-button {
   margin-bottom: 2rem;
+  margin-top: 0;
   padding: 0.75rem 1.5rem;
   border: none;
   border-radius: 0.5rem;

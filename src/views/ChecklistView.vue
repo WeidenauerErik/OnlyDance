@@ -2,7 +2,7 @@
 import playIcon from '@/assets/icons/playIcon.svg';
 import deleteIcon from '@/assets/icons/deleteIcon.svg';
 import {useAuthStore} from "@/stores/auth.ts";
-import {type Ref, ref} from "vue";
+import {type Ref, ref, watch} from "vue";
 import router from "@/router";
 import Swal from 'sweetalert2';
 
@@ -12,7 +12,6 @@ const props = defineProps({
 })
 const url = import.meta.env.VITE_ServerIP + `/checklist/get/${props.id}`;
 const url2 = import.meta.env.VITE_ServerIP + `/api/check`;
-const urlStepsequences = import.meta.env.VITE_ServerIP + `/stepsequence/get` ;
 const auth = useAuthStore();
 console.log(auth.token)
 const checklist = ref({});
@@ -134,10 +133,16 @@ const backbtn = () => {
 
 const availableSequences = ref([]);
 
-const addStepsToChecklist = async () => {
+const addStepsToChecklist = async (badgeId : number|null) => {
+  availableSequences.value = [];
+  let urlStepsequences = "";
   try {
+    if(badgeId) {
+      urlStepsequences = import.meta.env.VITE_ServerIP + "/stepsequence/badge/" + badgeId    }else {
+     urlStepsequences = import.meta.env.VITE_ServerIP + "/stepsequence/get";
+    }
+
     const response = await fetch(urlStepsequences);
-    if (!response.ok) throw new Error("Fehler beim Laden der Figuren");
     const allSequences = await response.json();
 
     const existingIds = new Set((checklist.value.stepsequences || []).map((s: any) => s.id));
@@ -199,7 +204,15 @@ const selectedSequences = ref<number[]>([]);
 const isSubmitting = ref(false);
 
 const openAddSequencesModal = async () => {
-  await addStepsToChecklist(); // Lädt verfügbare Sequenzen
+
+  try {
+    const response = await fetch(import.meta.env.VITE_ServerIP + '/badge/badges');
+    badges.value = await response.json();
+  } catch (error) {
+    Swal.fire("Fehler", "Abzeichen konnten nicht geladen werden.", "error");
+  }
+
+  await addStepsToChecklist(null); // Lädt verfügbare Sequenzen
   showAddSequencesModal.value = true;
 };
 
@@ -244,6 +257,18 @@ const handleSubmit = async () => {
 };
 
 
+const selectedBadge = ref(0);
+const badges = ref([]);
+
+watch(selectedBadge ,async () => {
+  if(selectedBadge.value === 0){
+   await addStepsToChecklist(null);
+  }else{
+    await addStepsToChecklist(selectedBadge.value);
+  }
+
+});
+
 </script>
 
 <template>
@@ -281,13 +306,27 @@ const handleSubmit = async () => {
       <h1 class="title">Figuren hinzufügen</h1>
 
       <form @submit.prevent="handleSubmit" class="checklist-form">
-        <label for="sequences">Figuren auswählen:</label>
-        <div class="sequence-list">
+        <div >
+          <div>
+            <label for="badges">Nach Abzeichen Filtern:</label>
+            <div >
+              <select v-model="selectedBadge" class="sequence-item">
+                <option v-for="badge in badges" :key="badge.id" :value="badge.id">
+                  {{ badge.name }}
+                </option>
+              </select>
+            </div>
+            <span @click="selectedBadge = 0">Filter Zurücksetzen</span>
+          </div>
+
+          <div class="sequence-list">
           <div v-for="sequence in availableSequences" :key="sequence.id" class="sequence-item">
             <input type="checkbox" :id="sequence.id" :value="sequence.id" v-model="selectedSequences" />
             <label :for="sequence.id">{{ sequence.name }}</label>
           </div>
+          </div>
         </div>
+
 
         <div class="modal-buttons">
           <button type="submit" :disabled="isSubmitting" class="main-button">
@@ -399,6 +438,9 @@ const handleSubmit = async () => {
   flex-direction: column;
   gap: 1rem;
 
+
+
+
   input[type="text"] {
     padding: 0.75rem;
     border-radius: 9999px;
@@ -411,6 +453,27 @@ const handleSubmit = async () => {
     }
   }
 
+  span {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    margin-top: 0;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    background-color: $colorVioletLight;
+    color: $colorWhite;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: $colorPurpleLight;
+      transform: translateY(-1px);
+    }
+  }
   .sequence-list {
     display: flex;
     flex-direction: column;

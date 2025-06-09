@@ -8,11 +8,27 @@
         <p v-if="v$.name.$error" class="error-text">Name darf nur aus Buchstaben bestehen</p>
 
 
-        <label for="sequences">Stepsequences auswählen:</label>
-        <div class="sequence-list">
+
+        <label class="sequenceLabel" for="sequences">Stepsequences auswählen:</label>
+        <div >
+
+          <div>
+          <label for="badges">Nach Abzeichen Filtern:</label>
+          <div >
+            <select v-model="selectedBadge" class="sequence-item">
+              <option v-for="badge in badges" :key="badge.id" :value="badge.id">
+                {{ badge.name }}
+              </option>
+            </select>
+          </div>
+            <span @click="selectedBadge = 0">Filter Zurücksetzen</span>
+          </div>
+
+          <div class="sequence-list">
           <div v-for="sequence in stepsequences" :key="sequence.id" class="sequence-item">
             <input type="checkbox" :id="sequence.id" :value="sequence.id" v-model="selectedSequences" />
             <label :for="sequence.id">{{ sequence.name }}</label>
+          </div>
           </div>
         </div>
 
@@ -25,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted, reactive, computed} from "vue";
+import {ref, onMounted, reactive, computed, watch} from "vue";
 import Swal from "sweetalert2";
 import { useAuthStore } from "@/stores/auth";
 import router from "@/router";
@@ -43,13 +59,32 @@ const rules = {
 
 const v$ = useVuelidate(rules, state);
 
-
-const name = ref('');
+const selectedBadge = ref(0);
+const badges = ref([]);
 const stepsequences = ref([]);
 const selectedSequences = ref<number[]>([]);
 const isSubmitting = ref(false);
 
 const auth = useAuthStore();
+watch(selectedBadge ,async () => {
+  if(selectedBadge.value === 0){
+    try {
+      const response = await fetch(import.meta.env.VITE_ServerIP + '/stepsequence/get');
+      stepsequences.value = await response.json();
+    } catch (error) {
+      Swal.fire("Fehler", "Stepsequences konnten nicht geladen werden.", "error");
+    }
+  }else {
+    try {
+      const response = await fetch(import.meta.env.VITE_ServerIP + `/stepsequence/badge/${selectedBadge.value}`);
+      stepsequences.value = await response.json();
+    } catch (error) {
+      Swal.fire("Fehler", "Stepsequences konnten nicht geladen werden.", "error");
+    }
+  }
+
+});
+
 
 // Stepsequences laden
 onMounted(async () => {
@@ -59,10 +94,15 @@ onMounted(async () => {
         "Authorization": `Bearer ${auth.token}`,
       }
     });
-    if (!response.ok) throw new Error("Fehler beim Laden der Stepsequences");
     stepsequences.value = await response.json();
   } catch (error) {
     Swal.fire("Fehler", "Stepsequences konnten nicht geladen werden.", "error");
+  }
+  try {
+    const response = await fetch(import.meta.env.VITE_ServerIP + '/badge/badges');
+    badges.value = await response.json();
+  } catch (error) {
+    Swal.fire("Fehler", "Abzeichen konnten nicht geladen werden.", "error");
   }
 });
 
@@ -135,10 +175,12 @@ const handleSubmit = async () => {
   text-align: center;
 }
 
+
 .checklist-form {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+
 
   input[type="text"] {
     padding: 0.75rem;
@@ -151,6 +193,12 @@ const handleSubmit = async () => {
       border-color: $colorPurpleLight;
     }
   }
+   .sequenceLabel{
+     font-size: 1.5rem;
+     color: $colorVioletDark;
+     margin-bottom: 0.5rem;
+     text-align: center;
+   }
 
   .sequence-list {
     display: flex;
@@ -161,6 +209,30 @@ const handleSubmit = async () => {
     border: 1px solid #ccc;
     border-radius: 0.75rem;
     background-color: #fafafa;
+    min-width: 300px;
+
+
+  }
+  span {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 2rem;
+    margin-top: 0;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    background-color: $colorVioletLight;
+    color: $colorWhite;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: $colorPurpleLight;
+      transform: translateY(-1px);
+    }
   }
 
   .sequence-item {
@@ -168,6 +240,35 @@ const handleSubmit = async () => {
     align-items: center;
     gap: 0.5rem;
     margin-bottom: 0.5rem;
+  }
+
+  select.sequence-item  {
+    padding: 0.75rem 1rem;
+    border-radius: 0.75rem;
+    border: 2px solid $colorPurpleLight;
+    min-width: 20vw;
+    width: 100%;
+    background-color: white;
+    font-size: 1rem;
+    font-weight: 500;
+    color: $colorPurpleLight;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    background-position: right 1rem center;
+    background-size: 1rem;
+
+    &:hover {
+      border-color: darken($colorPurpleLight, 10%);
+
+    }
+
+    &:focus {
+      border-color: darken($colorPurpleLight, 15%);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(149, 76, 233, 0.2);
+
+    }
+
+
   }
 
   .submit-button {

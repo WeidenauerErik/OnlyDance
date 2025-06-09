@@ -5,13 +5,15 @@ import type {FootStep, Step} from "@/tsTypes/interfacesDanceView.ts";
 
 import playIcon from "@/assets/icons/playIcon.svg";
 import pauseIcon from "@/assets/icons/pauseIcon.svg";
+import {useAuthStore} from "@/stores/auth.ts";
+import Swal from "sweetalert2";
 
 const props = defineProps({
-  id : String
+  id: String
 });
 
 //url for fetching for stepsequences
-const url =  import.meta.env.VITE_ServerIP +`/stepsequence/get/${props.id}`
+const url = import.meta.env.VITE_ServerIP + `/stepsequence/get/${props.id}`
 
 const steps = ref<Step>();
 const autoplayActive = ref<boolean>(false);
@@ -103,63 +105,115 @@ const backToEndBtn = () => {
 
 //Popup Funktionalität
 
+const auth = useAuthStore();
+
 const showAddToChecklistModal = ref(false);
 
 const availableChecklists = ref([]);
+const selectedChecklist = ref();
+const isSubmitting = ref(false);
+
 
 const triggerPopUp = async () => {
+  availableChecklists.value = [];
 
-  const response = await fetch(import.meta.env.VITE_ServerIP + "/checklist/get")
+  const response = await fetch(import.meta.env.VITE_ServerIP + "/checklist/user/get", {headers: {"Authorization": `Bearer ${auth.token}`}})
   const data = await response.json();
 
-  console.log('data', data);
+  availableChecklists.value = data.filter(checklist => !checklist.stepsequences.map(stepsequence => stepsequence.id).includes(Number(props.id))
+  );
   showAddToChecklistModal.value = true;
 
-  availableChecklists.value = data.filter(checklist => !checklist.stepsequences.map(stepsequence => stepsequence.id).includes(currentStep.value.id));
-  console.log("checklists",availableChecklists.value);
 
 }
+
+const handleSubmit = async () => {
+  if (!selectedChecklist.value) {
+    await Swal.fire("Fehler", "Bitte wähle eine gültige Checkliste aus.", "warning");
+    return;
+  }
+
+  isSubmitting.value = true;
+
+  try {
+    const response = await fetch(import.meta.env.VITE_ServerIP + "/checklist/add/stepsequence", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${auth.token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        checklist_id: selectedChecklist.value,
+        stepsequence_id: props.id
+      })
+    });
+
+    await Swal.fire("Erfolg", "Die Figur wurde erfolgreich zur Checkliste hinzugefügt!", "success");
+    showAddToChecklistModal.value = false;
+
+  } catch (error: any) {
+    await Swal.fire("Fehler", error.message || "Ein unbekannter Fehler ist aufgetreten.", "error");
+
+  } finally {
+    isSubmitting.value = false;
+  }
+
+  selectedChecklist.value = undefined;
+};
+
+
+const closeAddSequencesModal = () => {
+  showAddToChecklistModal.value = false;
+  selectedChecklist.value = undefined;
+};
+
 </script>
 
 <template>
-<FootAnimationComponent
-    :loaderIsVisible='loaderIsVisible'
-    :danceStepCounter='danceStepCounter'
-    :danceStepLength='danceStepLength'
-    :currentStep='currentStep || null'
-    :autoplayVariable='autoplayVariable'
-    :danceName='danceName'
-    :isInEditMode='false'
-    @backToBeginBtn="backToBeginBtn"
-    @backBtn="backBtn"
-    @AutoplayBtn="AutoplayBtn"
-    @nextBtn="nextBtn"
-    @backToEndBtn="backToEndBtn"
-    @popUpBtn="triggerPopUp"/>
+  <FootAnimationComponent
+      :loaderIsVisible='loaderIsVisible'
+      :danceStepCounter='danceStepCounter'
+      :danceStepLength='danceStepLength'
+      :currentStep='currentStep || null'
+      :autoplayVariable='autoplayVariable'
+      :danceName='danceName'
+      :isInEditMode='false'
+      :isLoggedIn='auth.isAuthenticated'
+      @backToBeginBtn="backToBeginBtn"
+      @backBtn="backBtn"
+      @AutoplayBtn="AutoplayBtn"
+      @nextBtn="nextBtn"
+      @backToEndBtn="backToEndBtn"
+      @popUpBtn="triggerPopUp"/>
 
 
   <div v-if="showAddToChecklistModal" class="modal-overlay">
     <div class="modal-content">
       <h1 class="title">Figur zu Checkliste hinzufügen</h1>
 
-      <form @submit.prevent="handleSubmit" class="checklist-form">
+      <form  @submit.prevent="handleSubmit" class="checklist-form">
         <label for="sequences">Checkliste auswählen:</label>
-        <div class="sequence-list">
+        <div v-if="availableChecklists.length > 0" class="sequence-list">
           <select v-model="selectedChecklist" class="sequence-item">
             <option v-for="checklist in availableChecklists" :key="checklist.id" :value="checklist.id">
               {{ checklist.name }}
             </option>
           </select>
         </div>
+        <div  v-else>
+          <h2>Keine verfügbaren Checklisten gefunden</h2>
+        </div>
+
 
 
         <div class="modal-buttons">
-          <button type="submit" :disabled="isSubmitting" class="main-button">
+          <button type="submit" :disabled="isSubmitting || availableChecklists.length < 1 || !selectedChecklist" class="main-button">
             {{ isSubmitting ? 'Wird hinzugefügt...' : 'Hinzufügen' }}
           </button>
           <button type="button" class="cancel-button" @click="closeAddSequencesModal">Abbrechen</button>
         </div>
       </form>
+
     </div>
   </div>
 
@@ -184,13 +238,16 @@ const triggerPopUp = async () => {
     background-color: $colorPurpleLight;
     transform: translateY(-1px);
   }
+  &:disabled {
+    background-color: grey;
+    cursor: not-allowed;
+  }
 }
 
 .error-message {
   color: red;
   margin-top: 10px;
 }
-
 
 
 .form-section {
@@ -221,22 +278,35 @@ const triggerPopUp = async () => {
     color: $colorPurpleLight;
   }
 
-  select.sequence-item {
+  select.sequence-item  {
     padding: 0.75rem 1rem;
     border-radius: 0.75rem;
-    border: 1px solid black;
+    border: 2px solid $colorPurpleLight;
     min-width: 20vw;
     width: 100%;
-    background-color: #f9f9f9;
+    background-color: white;
     font-size: 1rem;
-    cursor: pointer;
+    font-weight: 500;
+    color: $colorPurpleLight;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    background-position: right 1rem center;
+    background-size: 1rem;
+
+    &:hover {
+      border-color: darken($colorPurpleLight, 10%);
+
+    }
 
     &:focus {
-      border-color: $colorPurpleLight;
+      border-color: darken($colorPurpleLight, 15%);
       outline: none;
-      box-shadow: 0 0 0 2px rgba(149, 76, 233, 0.2);
+      box-shadow: 0 0 0 3px rgba(149, 76, 233, 0.2);
+
     }
+
+
   }
+
 
   .submit-button {
     background-color: $colorVioletLight;

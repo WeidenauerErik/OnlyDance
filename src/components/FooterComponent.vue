@@ -35,8 +35,6 @@ import {RouterLink} from "vue-router";
         <span>|</span>
         <RouterLink to="/checklists" class="linksFooter">Checklisten</RouterLink>
         <span>|</span>
-        <!--<RouterLink to="/events" class="linksFooter">EventKalendar</RouterLink>
-        <span>|</span>-->
         <RouterLink to="/imprint" class="linksFooter">Impressum</RouterLink>
 
       </div>
@@ -47,6 +45,8 @@ import {RouterLink} from "vue-router";
 </template>
 
 <style scoped lang="scss">
+
+
 
 #footerMainContainer {
   background-color: $colorVioletLight;
@@ -94,6 +94,34 @@ import {RouterLink} from "vue-router";
 
       .linksFooter:hover {
         text-decoration-line: underline;
+      }
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  #footerMainContainer {
+    #footerUpperContainer {
+      flex-direction: column;
+      text-align: center;
+      gap: 20px;
+      height: auto;
+      padding: 30px 0;
+
+      img {
+        width: 120px;
+        height: 120px;
+      }
+    }
+
+    #footerLinksContainer {
+      #innerFooterLinksContainer {
+        flex-direction: column;
+        gap: 15px;
+
+        span {
+          display: none; // Hide the separator pipes in mobile view
+        }
       }
     }
   }
