@@ -14,6 +14,10 @@ import AddChecklistView from "@/views/AddChecklistView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
+  scrollBehavior(to, from, savedPosition) {
+    console.log('ScrollBehavior triggered', { to, from }); // Debugging
+    return { top: 0, behavior: 'smooth' }; // Optional: Add smooth scrolling
+  },
   routes: [
     {
       path: '/mainpage',

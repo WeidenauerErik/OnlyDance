@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import FootAnimationComponent from "@/components/FootAnimationComponent.vue";
-import {nextTick, onMounted, ref} from "vue";
+import {nextTick, onMounted, onUnmounted, ref} from "vue";
 import type {FootStep, Step} from "@/tsTypes/interfacesDanceView.ts";
 
 import playIcon from "@/assets/icons/playIcon.svg";
@@ -12,22 +12,27 @@ const props = defineProps({
   id: String
 });
 
-//url for fetching for stepsequences
-const url = import.meta.env.VITE_ServerIP + `/stepsequence/get/${props.id}`
+const url = import.meta.env.VITE_ServerIP + `/stepsequence/get/${props.id}`;
 
 const steps = ref<Step>();
 const autoplayActive = ref<boolean>(false);
-
 const autoplayVariable = ref<string>(playIcon);
-
-//for properties
 let currentStep = ref<FootStep | null>(null);
 let loaderIsVisible = ref<boolean>(true);
 const danceStepCounter = ref<number>(0);
 const danceStepLength = ref<number>(0);
 const danceName = ref<string>("");
 
+const auth = useAuthStore();
+
+const showAddToChecklistModal = ref(false);
+const availableChecklists = ref([]);
+const selectedChecklist = ref();
+const isSubmitting = ref(false);
+
 onMounted(() => {
+  window.addEventListener('resize', handleResize);
+
   fetch(url)
       .then((res) => res.json())
       .then((data: Step) => {
@@ -42,6 +47,14 @@ onMounted(() => {
         loaderIsVisible.value = false;
         await nextTick();
       });
+});
+
+const handleResize = () => {
+  // Additional responsive logic can be added here if needed
+};
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize);
 });
 
 const backToBeginBtn = () => {
@@ -102,18 +115,6 @@ const backToEndBtn = () => {
   currentStep.value = steps.value[danceStepCounter.value];
 };
 
-
-//Popup Funktionalität
-
-const auth = useAuthStore();
-
-const showAddToChecklistModal = ref(false);
-
-const availableChecklists = ref([]);
-const selectedChecklist = ref();
-const isSubmitting = ref(false);
-
-
 const triggerPopUp = async () => {
   availableChecklists.value = [];
 
@@ -123,8 +124,6 @@ const triggerPopUp = async () => {
   availableChecklists.value = data.filter(checklist => !checklist.stepsequences.map(stepsequence => stepsequence.id).includes(Number(props.id))
   );
   showAddToChecklistModal.value = true;
-
-
 }
 
 const handleSubmit = async () => {
@@ -153,7 +152,6 @@ const handleSubmit = async () => {
 
   } catch (error: any) {
     await Swal.fire("Fehler", error.message || "Ein unbekannter Fehler ist aufgetreten.", "error");
-
   } finally {
     isSubmitting.value = false;
   }
@@ -161,65 +159,69 @@ const handleSubmit = async () => {
   selectedChecklist.value = undefined;
 };
 
-
 const closeAddSequencesModal = () => {
   showAddToChecklistModal.value = false;
   selectedChecklist.value = undefined;
 };
-
 </script>
 
 <template>
-  <FootAnimationComponent
-      :loaderIsVisible='loaderIsVisible'
-      :danceStepCounter='danceStepCounter'
-      :danceStepLength='danceStepLength'
-      :currentStep='currentStep || null'
-      :autoplayVariable='autoplayVariable'
-      :danceName='danceName'
-      :isInEditMode='false'
-      :isLoggedIn='auth.isAuthenticated'
-      @backToBeginBtn="backToBeginBtn"
-      @backBtn="backBtn"
-      @AutoplayBtn="AutoplayBtn"
-      @nextBtn="nextBtn"
-      @backToEndBtn="backToEndBtn"
-      @popUpBtn="triggerPopUp"/>
+  <div id="dance-view-container">
+    <FootAnimationComponent
+        :loaderIsVisible='loaderIsVisible'
+        :danceStepCounter='danceStepCounter'
+        :danceStepLength='danceStepLength'
+        :currentStep='currentStep || null'
+        :autoplayVariable='autoplayVariable'
+        :danceName='danceName'
+        :isInEditMode='false'
+        :isLoggedIn='auth.isAuthenticated'
+        @backToBeginBtn="backToBeginBtn"
+        @backBtn="backBtn"
+        @autoplayBtn="AutoplayBtn"
+        @nextBtn="nextBtn"
+        @backToEndBtn="backToEndBtn"
+        @popUpBtn="triggerPopUp"/>
 
+    <div v-if="showAddToChecklistModal" class="modal-overlay">
+      <div class="modal-content">
+        <h1 class="title">Figur zu Checkliste hinzufügen</h1>
 
-  <div v-if="showAddToChecklistModal" class="modal-overlay">
-    <div class="modal-content">
-      <h1 class="title">Figur zu Checkliste hinzufügen</h1>
+        <form @submit.prevent="handleSubmit" class="checklist-form">
+          <label for="sequences">Checkliste auswählen:</label>
+          <div v-if="availableChecklists.length > 0" class="sequence-list">
+            <select v-model="selectedChecklist" class="sequence-item">
+              <option v-for="checklist in availableChecklists" :key="checklist.id" :value="checklist.id">
+                {{ checklist.name }}
+              </option>
+            </select>
+          </div>
+          <div v-else>
+            <h2>Keine verfügbaren Checklisten gefunden</h2>
+          </div>
 
-      <form  @submit.prevent="handleSubmit" class="checklist-form">
-        <label for="sequences">Checkliste auswählen:</label>
-        <div v-if="availableChecklists.length > 0" class="sequence-list">
-          <select v-model="selectedChecklist" class="sequence-item">
-            <option v-for="checklist in availableChecklists" :key="checklist.id" :value="checklist.id">
-              {{ checklist.name }}
-            </option>
-          </select>
-        </div>
-        <div  v-else>
-          <h2>Keine verfügbaren Checklisten gefunden</h2>
-        </div>
-
-
-
-        <div class="modal-buttons">
-          <button type="submit" :disabled="isSubmitting || availableChecklists.length < 1 || !selectedChecklist" class="main-button">
-            {{ isSubmitting ? 'Wird hinzugefügt...' : 'Hinzufügen' }}
-          </button>
-          <button type="button" class="cancel-button" @click="closeAddSequencesModal">Abbrechen</button>
-        </div>
-      </form>
-
+          <div class="modal-buttons">
+            <button type="submit" :disabled="isSubmitting || availableChecklists.length < 1 || !selectedChecklist" class="main-button">
+              {{ isSubmitting ? 'Wird hinzugefügt...' : 'Hinzufügen' }}
+            </button>
+            <button type="button" class="cancel-button" @click="closeAddSequencesModal">Abbrechen</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
-
-
 </template>
+
 <style lang="scss">
+#dance-view-container {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+
+  @media (max-width: 768px) {
+    padding-bottom: 20vh;
+  }
+}
 
 .main-button {
   margin-right: 20px;
@@ -249,7 +251,6 @@ const closeAddSequencesModal = () => {
   margin-top: 10px;
 }
 
-
 .form-section {
   width: 100%;
   max-width: 500px;
@@ -278,7 +279,7 @@ const closeAddSequencesModal = () => {
     color: $colorPurpleLight;
   }
 
-  select.sequence-item  {
+  select.sequence-item {
     padding: 0.75rem 1rem;
     border-radius: 0.75rem;
     border: 2px solid $colorPurpleLight;
@@ -294,19 +295,14 @@ const closeAddSequencesModal = () => {
 
     &:hover {
       border-color: darken($colorPurpleLight, 10%);
-
     }
 
     &:focus {
       border-color: darken($colorPurpleLight, 15%);
       outline: none;
       box-shadow: 0 0 0 3px rgba(149, 76, 233, 0.2);
-
     }
-
-
   }
-
 
   .submit-button {
     background-color: $colorVioletLight;
@@ -353,6 +349,15 @@ const closeAddSequencesModal = () => {
   max-width: 500px;
   width: 90%;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+
+  @media (max-width: 768px) {
+    width: 95%;
+    padding: 1rem;
+
+    .checklist-form select.sequence-item {
+      min-width: 80vw;
+    }
+  }
 }
 
 .modal-buttons {
@@ -379,5 +384,4 @@ const closeAddSequencesModal = () => {
     transform: translateY(-1px);
   }
 }
-
 </style>

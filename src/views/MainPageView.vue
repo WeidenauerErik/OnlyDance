@@ -48,6 +48,7 @@ const getStepsequencesFromDance = (danceId: number) => {
         stepsequences.value = data;
         nextTick();
         isStepsequence.value = true;
+        window.scrollTo(0, 0); // Fallback
       });
 }
 
@@ -58,6 +59,8 @@ const getAllStepsequences = () => {
         stepsequences.value = data;
         nextTick();
         isStepsequence.value = true;
+        window.scrollTo(0, 0); // Fallback
+
       })
 }
 
