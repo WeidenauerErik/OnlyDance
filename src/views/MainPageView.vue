@@ -6,7 +6,7 @@ import router from "@/router";
 import goldIcon from '@/assets/icons/Gold.png';
 import silberIcon from '@/assets/icons/Silber.png';
 import bronzeIcon from '@/assets/icons/Bronze.png';
-import goldStarIcon from '@/assets/icons/GoldStar.svg';
+import goldStarIcon from '@/assets/icons/goldStar.png';
 
 const url = import.meta.env.VITE_ServerIP + "/dance/dances";
 const dances = ref<DanceTypes[]>([]);
@@ -244,7 +244,8 @@ const resetFilters = () => {
   padding: 2rem;
   margin: 0 auto;
   background: linear-gradient(to bottom right, #f3e8ff, #fce7f3, #ffffff);
-  height: 100vh;
+  min-height: 100vh;
+  height: auto;
 }
 
 .search-section {
